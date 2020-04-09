@@ -1,0 +1,29 @@
+{
+  "presets": [
+    [
+      "@babel/env",
+      {
+        "targets": { "esmodules": true }
+      }
+    ],
+    "@babel/typescript"
+  ],
+  "plugins": [
+    [
+      "@babel/plugin-transform-typescript",
+      {
+        "allowDeclareFields": true
+      }
+    ],
+    "@babel/proposal-class-properties",
+    [
+      "module-resolver",
+      {
+        "root": ["./"],
+        "alias": {
+          "/src": "./src"
+        }
+      }
+    ]
+  ]
+}

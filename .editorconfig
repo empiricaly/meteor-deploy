@@ -1,0 +1,14 @@
+[*]
+indent_style = space
+end_of_line = lf
+insert_final_newline = true
+
+[{*.ts,*.js,*.json,*.yml}]
+charset = utf-8
+
+
+[{*.ts,*.js}]
+indent_size = 2
+
+[{*.json,*yml}]
+indent_size = 4

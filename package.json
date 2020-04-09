@@ -1,0 +1,86 @@
+{
+  "name": "meteor-impact",
+  "version": "1.0.0",
+  "description": "A simple tool to facilitate deploying meteor projects to the cloud for production.",
+  "main": "dist/index.js",
+  "bin": {
+    "meteor-impact": "dist/cli.js"
+  },
+  "scripts": {
+    "test": "mocha",
+    "type-check": "tsc --noEmit",
+    "type-check:watch": "npm run type-check -- --watch",
+    "build": "npm run build:types && npm run build:js",
+    "build:types": "tsc --emitDeclarationOnly",
+    "build:js": "babel src --out-dir dist --extensions \".ts,.tsx\" --source-maps inline",
+    "lint": "eslint src/**/*.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/empiricaly/meteor-deploy.git"
+  },
+  "keywords": [
+    "empirica",
+    "meteor",
+    "deploy"
+  ],
+  "author": "Garik Suess",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/empiricaly/meteor-deploy/issues"
+  },
+  "homepage": "https://github.com/empiricaly/meteor-deploy#readme",
+  "directories": {
+    "dist": "./dist",
+    "src": "./src"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.8.4",
+    "@babel/core": "^7.9.0",
+    "@babel/plugin-proposal-class-properties": "^7.8.3",
+    "@babel/preset-env": "^7.9.0",
+    "@babel/preset-typescript": "^7.9.0",
+    "@types/mocha": "^7.0.2",
+    "@typescript-eslint/eslint-plugin": "^2.26.0",
+    "@typescript-eslint/parser": "^2.26.0",
+    "babel-plugin-module-resolver": "^4.0.0",
+    "eslint": "^6.8.0",
+    "eslint-config-prettier": "^6.10.1",
+    "eslint-plugin-import": "^2.20.2",
+    "eslint-plugin-prettier": "^3.1.2",
+    "husky": "^4.2.3",
+    "lint-staged": "^10.1.1",
+    "mocha": "^7.1.1",
+    "prettier": "^2.0.2",
+    "tsconfig-paths": "^3.9.0",
+    "typescript": "^3.8.3"
+  },
+  "dependencies": {
+    "@pulumi/aws": "^2.1.0",
+    "@pulumi/awsx": "^0.20.0",
+    "@pulumi/pulumi": "^2.0.0",
+    "@types/inquirer": "^6.5.0",
+    "@types/js-yaml": "^3.12.3",
+    "@types/node": "^13.9.8",
+    "@types/semver": "^7.1.0",
+    "commander": "^5.0.0",
+    "detect-indent": "^6.0.0",
+    "edit-json-file": "^1.4.0",
+    "inquirer": "^7.1.0",
+    "js-yaml": "^3.13.1",
+    "pulumi": "0.0.1",
+    "regenerator-runtime": "^0.13.5",
+    "semver": "^7.1.3"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "*.{js,ts,tsx}": [
+      "eslint --fix",
+      "git add"
+    ]
+  }
+}
