@@ -57,7 +57,6 @@ export class PulumiProjectInitializer extends Wrapper<CoreInitializer> {
     this.fileInitializer.addIgnoreEntries(
       [
         ".meteor/local",
-        "node_modules",
         "Pulumi.yaml",
         "Pulumi.*.yaml",
         ...DEVELOPMENT_ARTIFACTS,
