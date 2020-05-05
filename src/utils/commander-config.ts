@@ -95,9 +95,13 @@ export class CommanderField<T, SchemaField extends schema.Field<T>> {
   }
 
   configure(program: Command, key: string): void {
-    const { flags, description, regexp, defaultValue } = this.commandOption(
-      key
-    );
+    const commandOption = this.commandOption(key);
+
+    if (!commandOption) {
+      return;
+    }
+
+    const { flags, description, regexp, defaultValue } = commandOption;
 
     if (this.isMandatory()) {
       program.requiredOption(flags, description, regexp as RegExp);
@@ -108,16 +112,28 @@ export class CommanderField<T, SchemaField extends schema.Field<T>> {
     }
   }
 
-  retrieve(program: Command, key: string): T {
-    const { flags, description } = this.commandOption(key);
+  parseValue(value: string): T {
+    return this.schema.parseValue(value);
+  }
+
+  stringifyValue(value: T): string {
+    return this.schema.stringifyValue(value);
+  }
+
+  retrieve(program: Command, key: string): T | undefined {
+    const commandOption = this.commandOption(key);
+
+    if (!commandOption) {
+      return undefined;
+    }
+
+    const { flags, description } = commandOption;
     // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
     // @ts-ignore attributeName is private, but it is safer to use it than making assumptions about how commander
     const inputValue = program.opts()[getAttributeName(flags, description)];
 
     const value =
-      typeof inputValue === "string"
-        ? this.schema.parseValue(inputValue)
-        : inputValue;
+      typeof inputValue === "string" ? this.parseValue(inputValue) : inputValue;
 
     if (!this.schema.validate(value)) {
       const option = new Option(flags, description);
@@ -127,25 +143,27 @@ export class CommanderField<T, SchemaField extends schema.Field<T>> {
     return value;
   }
 
-  commandOption(key: string): CommandOption<T> {
+  commandOption(key: string): CommandOption<T> | null {
     const {
       defaultValue,
       isRequired: mandatory,
       description = `Value for '${key}'`,
-      cliFlags: flags = this.defaultCommandOption(key),
+      cliFlags: flags,
     } = this.schema;
 
-    return {
-      flags,
-      mandatory,
-      description,
-      defaultValue:
-        defaultValue &&
-        typeof defaultValue !== "string" &&
-        typeof defaultValue !== "boolean"
-          ? this.schema.stringifyValue(defaultValue)
-          : (defaultValue as string | boolean | undefined),
-    };
+    return flags
+      ? {
+          flags,
+          mandatory,
+          description,
+          defaultValue:
+            defaultValue &&
+            typeof defaultValue !== "string" &&
+            typeof defaultValue !== "boolean"
+              ? this.stringifyValue(defaultValue)
+              : (defaultValue as string | boolean | undefined),
+        }
+      : null;
   }
 
   protected defaultCommandOption(key: string): string {
