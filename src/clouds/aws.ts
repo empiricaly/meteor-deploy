@@ -12,7 +12,7 @@ export function getConfigSchema(): ConfigSchema {
     region: StringField.required<Region>()
       .default("us-east-1")
       .pattern(/[a-z]{2}-[a-z]+-\d+/)
-      .commandOption("--aws-region <region>")
+      .commandOption("--aws:region <region>")
       .describe(
         "AWS Region to deploy to. See https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Concepts.RegionsAndAvailabilityZones.html"
       ),
