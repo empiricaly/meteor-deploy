@@ -8,6 +8,10 @@ export type Config = {
     memory: number;
     meteorSettings?: JsonableObj;
     rootUrl?: string;
+    env?: {
+      name: string;
+      value: string;
+    }[];
   };
   database: {
     mongoTag: string;
@@ -48,6 +52,10 @@ export function getConfigSchema(): ConfigSchema {
       meteorSettings: schema.ObjectField.optional<JsonableObj>()
         .commandOption("--app:meteor-settings <json>")
         .describe("METEOR_SETTINGS object as a json string"),
+
+      env: schema.ArrayField.optional<{ name: string; value: string }[]>()
+        .default([])
+        .describe("Run time environment variables"),
     },
 
     database: {

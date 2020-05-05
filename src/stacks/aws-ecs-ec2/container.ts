@@ -30,7 +30,13 @@ export function createAppContainer(
     memory,
     rootUrl,
     meteorSettings,
-  }: { memory: number; rootUrl?: string; meteorSettings?: JsonableObj },
+    env = [],
+  }: {
+    memory: number;
+    rootUrl?: string;
+    meteorSettings?: JsonableObj;
+    env?: { name: string; value: string }[];
+  },
   {
     databaseContainerName = "database",
     alb,
@@ -59,6 +65,7 @@ export function createAppContainer(
         name: "METEOR_SETTINGS",
         value: meteorSettings ? JSON.stringify(meteorSettings) : "",
       },
+      ...env,
     ],
     dependsOn: [
       {
