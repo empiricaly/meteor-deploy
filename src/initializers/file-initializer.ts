@@ -118,7 +118,10 @@ export class FileInitializer extends Wrapper<CoreInitializer> {
           src
         )}`;
       } else {
-        if (this.fs.fileIsIdentical({ file: dest, sourcePath: src })) {
+        if (
+          !this.fs.isSymlink(dest) &&
+          this.fs.fileIsIdentical({ file: dest, sourcePath: src })
+        ) {
           return this;
         }
 
@@ -140,7 +143,12 @@ export class FileInitializer extends Wrapper<CoreInitializer> {
       challenge: warn,
       run: symbolicLink
         ? (): void => this.fs.createSymlink(src, dest, overwrite)
-        : (): void => this.fs.copyFile(src, dest, overwrite),
+        : (): void => {
+            if (overwrite && this.fs.isSymlink(dest)) {
+              this.fs.deleteFile(dest);
+            }
+            this.fs.copyFile(src, dest, overwrite);
+          },
     });
     return this;
   }

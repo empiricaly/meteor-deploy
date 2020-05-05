@@ -50,7 +50,7 @@ export const fileProber: FileProber = {
   },
 
   isSymlink(path: string): boolean {
-    return statSync(path).isSymbolicLink();
+    return this.realpath(path) !== path;
   },
 };
 
