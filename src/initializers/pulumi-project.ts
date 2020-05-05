@@ -144,7 +144,7 @@ export class PulumiProjectInitializer extends Wrapper<CoreInitializer> {
     projectName = getDeploymentPackageName(meteorDirectory),
     description = getDefaultDescription(),
     developmentMode = false,
-    pulumiProgram = "pulumi.ts",
+    pulumiProgram = "pulumi.js",
   }: {
     projectName?: string;
     description?: string;
