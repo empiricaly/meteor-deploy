@@ -8,15 +8,14 @@ FROM empiricaly/meteor:$METEOR_VERSION AS builder
 
 WORKDIR /usr/local/meteor-src
 COPY . .
-RUN meteor npm --allow-superuser install
+RUN meteor npm --allow-superuser install --only production
 RUN meteor build --allow-superuser --directory /usr/local/meteor-app
 WORKDIR /usr/local/meteor-app/bundle/programs/server
-RUN meteor npm --release $METEOR_VERSION  install
-RUN meteor npm --release $METEOR_VERSION --allow-superuser install --save bcrypt
+RUN meteor npm --release "$METEOR_VERSION" install
+RUN meteor npm --release "$METEOR_VERSION" --allow-superuser install --save bcrypt
 
 # Stage 1:
 # Deploy production bundle on nodejs server
-
 FROM node:$NODE_VERSION
 
 WORKDIR /usr/local/meteor-app
@@ -32,7 +31,5 @@ ENV MONGO_OPLOG_URL ""
 ENV METEOR_PACKAGE_DIRS ""
 ENV PORT ""
 ENV ROOT_URL http://localhost
-
-ADD "$BUILD_SOURCE" .
 
 ENTRYPOINT exec node main.js
