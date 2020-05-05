@@ -309,7 +309,7 @@ export class BooleanField<
   }
 }
 
-abstract class ObjectOrArrayField<
+export abstract class ObjectOrArrayField<
   T extends JsonableObj | JsonableArray | undefined
 > extends Field<T> {
   required(): ObjectOrArrayField<NonNullable<T>> {
