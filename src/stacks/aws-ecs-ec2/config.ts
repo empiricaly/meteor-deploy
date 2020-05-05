@@ -36,6 +36,7 @@ export function getConfigSchema(): ConfigSchema {
         .pattern(/^http?s:\//i)
         .commandOption("--app:endpoint <url>")
         .describe("The root url at which the application will be hosted"),
+
       memory: schema.NumberField.required()
         .default(1024)
         .range({ min: 0 })
@@ -43,7 +44,8 @@ export function getConfigSchema(): ConfigSchema {
         .describe(
           "The amount of available memory to assign the application container"
         ),
-      meteorSettings: schema.ObjectOrArrayField.optional<JsonableObj>()
+
+      meteorSettings: schema.ObjectField.optional<JsonableObj>()
         .commandOption("--app:meteor-settings <json>")
         .describe("METEOR_SETTINGS object as a json string"),
     },

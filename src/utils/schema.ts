@@ -1,4 +1,4 @@
-import { JsonableArray, JsonableObj } from "./jsonable";
+import { Jsonable, JsonableArray, JsonableObj } from "./jsonable";
 
 export interface CommanderOptionConfigurator<T> {
   readonly cliFlags?: string;
@@ -309,21 +309,9 @@ export class BooleanField<
   }
 }
 
-export class ObjectOrArrayField<
+abstract class ObjectOrArrayField<
   T extends JsonableObj | JsonableArray | undefined
 > extends Field<T> {
-  static required<T extends JsonableObj | JsonableArray>(): ObjectOrArrayField<
-    T
-  > {
-    return new ObjectOrArrayField<T>({ isRequired: true as IsRequired<T> });
-  }
-
-  static optional<T extends JsonableObj | JsonableArray>(): ObjectOrArrayField<
-    T | undefined
-  > {
-    return new ObjectOrArrayField<T | undefined>({ isRequired: false });
-  }
-
   required(): ObjectOrArrayField<NonNullable<T>> {
     return (this.clone({
       isRequired: true as IsRequired<T>,
@@ -345,7 +333,138 @@ export class ObjectOrArrayField<
   }
 
   isType(value: unknown): value is NonNullable<T> {
-    return typeof value === "object";
+    return typeof value === "object" && value !== null;
+  }
+}
+
+export class ObjectField<
+  T extends JsonableObj | undefined
+> extends ObjectOrArrayField<T> {
+  static required<T extends JsonableObj>(): ObjectOrArrayField<T> {
+    return new ObjectField<T>({ isRequired: true as IsRequired<T> });
+  }
+
+  static optional<T extends JsonableObj>(): ObjectOrArrayField<T | undefined> {
+    return new ObjectField<T | undefined>({ isRequired: false });
+  }
+
+  required(): ObjectField<NonNullable<T>> {
+    return super.required();
+  }
+
+  optional(): ObjectField<T | undefined> {
+    return super.optional();
+  }
+
+  isType(value: unknown): value is NonNullable<T> {
+    return super.isType(value) && !Array.isArray(value);
+  }
+}
+
+export function validate<Schema extends object>(
+  schemaObject: Schema,
+  obj: object
+): obj is Data<Schema> {
+  return Object.entries(schemaObject).every(([key, schemaObject]) => {
+    const { [key]: value } = obj as Record<
+      string,
+      Field<unknown> | object | unknown
+    >;
+    if (schemaObject instanceof Field) {
+      return schemaObject.validate(value);
+    } else if (
+      typeof schemaObject === "object" &&
+      typeof value === "object" &&
+      value !== null
+    ) {
+      return validate(schemaObject, value);
+    } else {
+      return schemaObject === value;
+    }
+  });
+}
+
+export type StringifiedData<T> = {
+  [K in keyof T]: [T[K]] extends [Field<infer U>]
+    ? string
+    : T[K] extends object
+    ? Data<T[K]>
+    : T[K];
+};
+
+type ElementSchema<T extends JsonableArray | undefined> = [T] extends [
+  (infer E)[] | undefined
+]
+  ? [E] extends [JsonableObj]
+    ? ObjectOrArrayField<E> | Schema<E>
+    : [E] extends [JsonableObj | undefined]
+    ? ObjectOrArrayField<E>
+    : Field<E>
+  : never;
+
+export interface ArrayProperties<T extends JsonableArray | undefined>
+  extends FieldProperties<T> {
+  readonly elementSchema?: ElementSchema<T>;
+}
+
+export class ArrayField<T extends JsonableArray | undefined>
+  extends ObjectOrArrayField<T>
+  implements ArrayProperties<T> {
+  public readonly elementSchema?: ElementSchema<T>;
+
+  static required<T extends JsonableArray>(): ArrayField<T> {
+    return new ArrayField<T>({ isRequired: true as IsRequired<T> });
+  }
+
+  static optional<T extends JsonableArray>(): ArrayField<T | undefined> {
+    return new ArrayField<T | undefined>({ isRequired: false });
+  }
+
+  constructor({
+    elementSchema,
+    ...props
+  }: Partial<ArrayProperties<T>> & { isRequired: IsRequired<T> }) {
+    super(props);
+    this.elementSchema = elementSchema;
+  }
+
+  required(): ArrayField<NonNullable<T>> {
+    return super.required() as ArrayField<NonNullable<T>>;
+  }
+
+  optional(): ArrayField<T | undefined> {
+    return super.optional() as ArrayField<T | undefined>;
+  }
+
+  clone(override: Partial<ArrayProperties<T>>): this {
+    return new this.constructor({ ...this, ...override });
+  }
+
+  element(elementSchema: ElementSchema<T>): this {
+    return this.clone({ elementSchema });
+  }
+
+  validateElement(value: unknown): value is T extends (infer E)[] ? E : never {
+    if (this.elementSchema === undefined) {
+      throw new Error(
+        "Cannot validate array elements without an array element schema"
+      );
+    }
+
+    return this.elementSchema instanceof Field
+      ? this.elementSchema.validate(value)
+      : typeof value === "object" && value !== null
+      ? validate(this.elementSchema, value)
+      : false;
+  }
+
+  isType(value: unknown): value is NonNullable<T> {
+    return (
+      super.isType(value) &&
+      Array.isArray(value) &&
+      (this.elementSchema === undefined ||
+        value.every((value) => this.validateElement(value)))
+    );
   }
 }
 
@@ -370,9 +489,9 @@ export type SchemaType<T> = [T] extends [string | undefined]
   : [T] extends [boolean | undefined]
   ? BooleanField<T>
   : [T] extends [JsonableObj | undefined]
-  ? ObjectOrArrayField<T>
+  ? ObjectField<T>
   : [T] extends [JsonableArray | undefined]
-  ? ObjectOrArrayField<T>
+  ? ArrayField<T>
   : never;
 
 /** Converts an object type definition into a Schema type definition.
@@ -384,7 +503,7 @@ export type SchemaType<T> = [T] extends [string | undefined]
 export type Schema<T extends object> = Required<
   {
     [K in keyof T]: [T[K]] extends [JsonableObj]
-      ? Schema<T[K]> | ObjectOrArrayField<T[K]>
+      ? Schema<T[K]> | ObjectField<T[K]>
       : [T[K]] extends [object]
       ? Schema<T[K]>
       : SchemaType<T[K]>;
@@ -402,26 +521,3 @@ export type OpinionatedSchema<T extends object> = Required<
       : SchemaType<T[K]>;
   }
 >;
-
-export function validate<Schema extends object>(
-  schemaObject: Schema,
-  obj: object
-): obj is Data<Schema> {
-  return Object.entries(schemaObject).every(([key, schemaObject]) => {
-    const { [key]: value } = obj as Record<
-      string,
-      Field<unknown> | object | unknown
-    >;
-    if (schemaObject instanceof Field) {
-      return schemaObject.validate(value);
-    } else if (
-      typeof schemaObject === "object" &&
-      typeof value === "object" &&
-      value !== null
-    ) {
-      return validate(schemaObject, value);
-    } else {
-      return schemaObject === value;
-    }
-  });
-}
