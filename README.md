@@ -43,7 +43,7 @@ You will also need an up-to-date version of meteor installed.
 Finally, install `meteor-impact` through npm, by running the following command in your meteor projects' directory.
 
 ```bash
-meteor npm install meteor-impact -y
+meteor npm install --save-dev meteor-impact -y
 ```
 
 ### Create a deployment project
@@ -51,10 +51,16 @@ meteor npm install meteor-impact -y
 Now enable your meteor projects for deployments using `meteor-impact`:
 
 ```bash
-meteor npx meteor-impact init --description "This is meteor deployment project"
+npx meteor-impact init --description "This is meteor deployment project"
 ```
 
-This will setup a deployment project in the `./deploy` directory within your meteor project directory.
+This will install some configuration files to allow you to push infrastructure through pulumi. 
+
+Make sure to install newly require NPM packages.
+
+```bash 
+meteor npm install
+```
 
 ### Configure a deployment stack
 
@@ -76,13 +82,13 @@ pulumi stack select
 Now we can add some configuration to the selected stack:
 
 ```bash 
-meteor npm meteor-impact stack configure aws-ecs-ec2 --instanceType t2.medium
+npx meteor-impact stack configure aws-ecs-ec2 --instanceType t2.medium
 ```
 
 For more configuration options check:
 
 ```bash 
-meteor npm meteor-impact stack configure aws-ecs-ec2 --help
+npx meteor-impact stack configure aws-ecs-ec2 --help
 ```
 
 ### Authorize access for your AWS Cloud account
@@ -121,7 +127,8 @@ When a new release is available, run the following commands to update your deplo
 
 ```bash 
 meteor npm update meteor-impact
-meteor npx meteor-impact init
+npx meteor-impact init
+meteor npm install
 pulumi up
 ```
 
@@ -130,7 +137,7 @@ pulumi up
 If you are developing `meteor-impact`, run `npm link` and use the `--developmentMode` flag when initializing your deployment project:
 
 ```bash
-meteor npx meteor-impact init --developmentMode
+npx meteor-impact init --developmentMode
 ```
 
 This will create symbolic links instead of one-of file-dumps, which is ideal for when you are making frequent changes to the `meteor-impact` package.
