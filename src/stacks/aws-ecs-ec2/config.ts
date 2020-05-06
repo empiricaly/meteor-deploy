@@ -53,7 +53,14 @@ export function getConfigSchema(): ConfigSchema {
         .commandOption("--app:meteor-settings <json>")
         .describe("METEOR_SETTINGS object as a json string"),
 
-      env: schema.ArrayField.optional<{ name: string; value: string }[]>()
+      env: schema.ArrayField.optional<{ name: string; value: string }[]>({
+        name: schema.StringField.required().describe(
+          "Name of environment variable"
+        ),
+        value: schema.StringField.required().describe(
+          "Value of environment variable"
+        ),
+      })
         .default([])
         .describe("Run time environment variables"),
     },
