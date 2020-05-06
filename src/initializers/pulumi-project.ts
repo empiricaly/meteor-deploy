@@ -13,12 +13,9 @@ import { CoreInitializer } from "./core";
 
 const RESOURCE_FILES = path.resolve(PACKAGE_ROOT, "resource-files");
 
-function getDeploymentPackageName(meteorDir = process.cwd()): string {
+function getDefaultProjectName(meteorDir = process.cwd()): string {
   const { name } = getPackageInfo(meteorDir);
-  return `${name} - Meteor Deployment`
-    .toLowerCase()
-    .replace(/\s+/g, "-")
-    .replace(/-+/g, "-");
+  return name;
 }
 
 function getDefaultDescription(): string {
@@ -140,7 +137,7 @@ export class PulumiProjectInitializer extends Wrapper<CoreInitializer> {
 
   addProject({
     meteorDirectory = process.cwd(),
-    projectName = getDeploymentPackageName(meteorDirectory),
+    projectName = getDefaultProjectName(meteorDirectory),
     description = getDefaultDescription(),
     developmentMode = false,
     pulumiProgram = "pulumi.js",
