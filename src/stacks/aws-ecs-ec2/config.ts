@@ -37,7 +37,7 @@ export function getConfigSchema(): ConfigSchema {
 
     app: {
       rootUrl: schema.StringField.optional()
-        .pattern(/^http?s:\//i)
+        .pattern(/^https?:\//i)
         .commandOption("--app:endpoint <url>")
         .describe("The root url at which the application will be hosted"),
 
