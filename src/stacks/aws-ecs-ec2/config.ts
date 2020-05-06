@@ -4,6 +4,9 @@ import { JsonableObj, schema } from "/src/utils";
 export type Config = {
   instanceType: ec2.InstanceType;
   publicKey?: string;
+  https?: {
+    certificateArn: string;
+  };
   app: {
     memory: number;
     meteorSettings?: JsonableObj;
@@ -34,6 +37,14 @@ export function getConfigSchema(): ConfigSchema {
       .describe(
         "The type of EC2 instances to use. Select one from: https://aws.amazon.com/ec2/instance-types/"
       ),
+
+    https: schema.ObjectField.optional({
+      certificateArn: schema.StringField.required()
+        .commandOption("--https:certificate <arn>")
+        .describe(
+          "Enables support for https for the ARN to a AWS Certificate Manager resource"
+        ),
+    }),
 
     app: {
       rootUrl: schema.StringField.optional()
