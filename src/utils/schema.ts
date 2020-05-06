@@ -1,4 +1,4 @@
-import { Jsonable, JsonableArray, JsonableObj } from "./jsonable";
+import { JsonableArray, JsonableObj } from "./jsonable";
 
 export interface CommanderOptionConfigurator<T> {
   readonly cliFlags?: string;
@@ -15,6 +15,9 @@ export interface FieldProperties<T> {
   readonly isRequired: boolean; //IsRequired<T>;
 }
 
+type ConstructorProperties<P extends FieldProperties<unknown>> = Partial<P> &
+  (P extends FieldProperties<infer T> ? { isRequired: IsRequired<T> } : never);
+
 export abstract class Field<T>
   implements FieldProperties<T>, CommanderOptionConfigurator<T> {
   readonly defaultValue?: NonNullable<T>;
@@ -29,9 +32,7 @@ export abstract class Field<T>
     isSecret: false,
   };
 
-  constructor(
-    props: Partial<FieldProperties<T>> & { isRequired: IsRequired<T> }
-  ) {
+  constructor(props: ConstructorProperties<FieldProperties<T>>) {
     const { defaultValue, isSecret, description, cliFlags, isRequired } = {
       ...Field.defaultProperties,
       ...props,
@@ -106,8 +107,6 @@ export class StringField<T extends string | undefined = string | undefined>
   readonly maxLength?: number;
   readonly allowedValues?: NonNullable<T>[];
 
-  declare ["constructor"]: new (props: StringProperties<T>) => this;
-
   static required<T extends string = string>(): StringField<T> {
     return new StringField<T>({ isRequired: true as IsRequired<T> });
   }
@@ -122,7 +121,7 @@ export class StringField<T extends string | undefined = string | undefined>
     maxLength,
     allowedValues,
     ...props
-  }: Partial<StringProperties<T>> & { isRequired: IsRequired<T> }) {
+  }: ConstructorProperties<StringProperties<T>>) {
     super(props);
     this.regex = regex;
     this.minLength = minLength;
@@ -205,11 +204,7 @@ export class NumberField<T extends number | undefined = number | undefined>
     return new NumberField<number | undefined>({ isRequired: false });
   }
 
-  declare ["constructor"]: new (props: NumberProperties<T>) => this;
-
-  constructor(
-    props: Partial<NumberProperties<T>> & { isRequired: IsRequired<T> }
-  ) {
+  constructor(props: ConstructorProperties<NumberProperties<T>>) {
     const { min, max } = {
       ...props,
       ...NumberField.defaultProperties,
@@ -337,30 +332,6 @@ export abstract class ObjectOrArrayField<
   }
 }
 
-export class ObjectField<
-  T extends JsonableObj | undefined
-> extends ObjectOrArrayField<T> {
-  static required<T extends JsonableObj>(): ObjectOrArrayField<T> {
-    return new ObjectField<T>({ isRequired: true as IsRequired<T> });
-  }
-
-  static optional<T extends JsonableObj>(): ObjectOrArrayField<T | undefined> {
-    return new ObjectField<T | undefined>({ isRequired: false });
-  }
-
-  required(): ObjectField<NonNullable<T>> {
-    return super.required();
-  }
-
-  optional(): ObjectField<T | undefined> {
-    return super.optional();
-  }
-
-  isType(value: unknown): value is NonNullable<T> {
-    return super.isType(value) && !Array.isArray(value);
-  }
-}
-
 export function validate<Schema extends object>(
   schemaObject: Schema,
   obj: object
@@ -384,13 +355,52 @@ export function validate<Schema extends object>(
   });
 }
 
-export type StringifiedData<T> = {
-  [K in keyof T]: [T[K]] extends [Field<infer U>]
-    ? string
-    : T[K] extends object
-    ? Data<T[K]>
-    : T[K];
-};
+export interface ObjectProperties<T extends JsonableObj | undefined>
+  extends FieldProperties<T> {
+  readonly subSchema?: Schema<NonNullable<T>>;
+}
+
+export class ObjectField<T extends JsonableObj | undefined>
+  extends ObjectOrArrayField<T>
+  implements ObjectProperties<T> {
+  static required<T extends JsonableObj>(
+    subSchema?: Schema<NonNullable<T>>
+  ): ObjectOrArrayField<T> {
+    return new ObjectField<T>({ subSchema, isRequired: true as IsRequired<T> });
+  }
+
+  static optional<T extends JsonableObj>(
+    subSchema?: Schema<NonNullable<T>>
+  ): ObjectOrArrayField<T | undefined> {
+    return new ObjectField<T | undefined>({ subSchema, isRequired: false });
+  }
+
+  readonly subSchema?: Schema<NonNullable<T>>;
+
+  constructor({
+    subSchema,
+    ...props
+  }: ConstructorProperties<ObjectProperties<T>>) {
+    super(props);
+    this.subSchema = subSchema;
+  }
+
+  required(): ObjectField<NonNullable<T>> {
+    return super.required();
+  }
+
+  optional(): ObjectField<T | undefined> {
+    return super.optional();
+  }
+
+  isType(value: unknown): value is NonNullable<T> {
+    return (
+      super.isType(value) &&
+      !Array.isArray(value) &&
+      (!this.subSchema || validate(this.subSchema, value))
+    );
+  }
+}
 
 type ElementSchema<T extends JsonableArray | undefined> = [T] extends [
   (infer E)[] | undefined
@@ -412,18 +422,25 @@ export class ArrayField<T extends JsonableArray | undefined>
   implements ArrayProperties<T> {
   public readonly elementSchema?: ElementSchema<T>;
 
-  static required<T extends JsonableArray>(): ArrayField<T> {
-    return new ArrayField<T>({ isRequired: true as IsRequired<T> });
+  static required<T extends JsonableArray>(
+    elementSchema?: ElementSchema<T>
+  ): ArrayField<T> {
+    return new ArrayField<T>({
+      elementSchema,
+      isRequired: true as IsRequired<T>,
+    });
   }
 
-  static optional<T extends JsonableArray>(): ArrayField<T | undefined> {
-    return new ArrayField<T | undefined>({ isRequired: false });
+  static optional<T extends JsonableArray>(
+    elementSchema?: ElementSchema<T>
+  ): ArrayField<T | undefined> {
+    return new ArrayField<T | undefined>({ elementSchema, isRequired: false });
   }
 
   constructor({
     elementSchema,
     ...props
-  }: Partial<ArrayProperties<T>> & { isRequired: IsRequired<T> }) {
+  }: ConstructorProperties<ArrayProperties<T>>) {
     super(props);
     this.elementSchema = elementSchema;
   }
