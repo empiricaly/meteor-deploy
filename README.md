@@ -35,7 +35,7 @@ Before we begin you will install some essential tools that @empirica/meteor-depl
 
 1. [pulumi](https://www.pulumi.com) - To install, follow [these instructions](https://www.pulumi.com/docs/get-started/aws/install-pulumi/).
 1. [aws-cli](https://aws.amazon.com/cli/) - To install, follow the instructions on their website, or run `sudo apt-get install awscli` if you are using an ubuntu linux system.
-1. [node-js](https://nodejs.com) - A separate node-js installation is needed, because meteor's inbuilt nodejs version is out of date.
+1. [node-js](https://nodejs.dev) - A separate node-js installation is needed, because meteor's inbuilt nodejs version is out of date. [How to install nodejs](https://nodejs.dev/how-to-install-nodejs)
 
 You will also need an up-to-date version of meteor installed.
 
