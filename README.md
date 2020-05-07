@@ -1,18 +1,18 @@
-meteor-impact
+@empirica/meteor-deploy
 =============
 **(Work in Progress!)** 
 
 A simple tool to facilitate deploying meteor projects to the cloud for production.
 
-## _What_ is meteor-impact?
+## _What_ is @empirica/meteor-deploy?
 
-`meteor-impact` is yet another production deployment tool for [meteor](https://meteor.com) projects. 
+`@empirica/meteor-deploy` is yet another production deployment tool for [meteor](https://meteor.com) projects. 
 
 It has been specifically tailored to deploy [empirica.ly](https://empirica.ly) experiments, however it can also be used for other projects.
 
-`meteor-impact` uses [docker](https://docker.com) containers and [pulumi](https://pulumi.com) templates facilitate deployments to your own cloud account (currently only AWS is supported). 
+`@empirica/meteor-deploy` uses [docker](https://docker.com) containers and [pulumi](https://pulumi.com) templates facilitate deployments to your own cloud account (currently only AWS is supported). 
 
-## _Why_ do we need meteor-impact?
+## _Why_ do we need @empirica/meteor-deploy?
 
 There are plenty of alternative ways to deploy meteor projects for production:
 
@@ -21,17 +21,17 @@ There are plenty of alternative ways to deploy meteor projects for production:
 
 For Meteor projects such as Empirica, Meteor's Galaxy hosting does not offer compute instances with sufficient CPU and Memory to allow for optimal performance. For most meteor projects that is not problem as Galaxy is excellent at facilitating horizontal scalability, however Empirica projects do not support that.
 
-`meteor-impact`, just like Meteor Up allows you to deploy your own MongoDB instance, so that you don't have to run use a professional MongoDB hosting service.
+`@empirica/meteor-deploy`, just like Meteor Up allows you to deploy your own MongoDB instance, so that you don't have to run use a professional MongoDB hosting service.
 
-`meteor-impact` creates all the infrastructure resources that you need on the cloud, so you don't have to spend time configuring infrastructure and deploying updates to it. When using Meteor Up you would still need to go through some cumbersome steps to deploy your docker-containers to the cloud.
+`@empirica/meteor-deploy` creates all the infrastructure resources that you need on the cloud, so you don't have to spend time configuring infrastructure and deploying updates to it. When using Meteor Up you would still need to go through some cumbersome steps to deploy your docker-containers to the cloud.
 
-However if you do need production grade database-hosting (with full back-up solutions and scalability) and if you need your application deployment to scale horizontally, `meteor-impact` may not be the right tool for you.
+However if you do need production grade database-hosting (with full back-up solutions and scalability) and if you need your application deployment to scale horizontally, `@empirica/meteor-deploy` may not be the right tool for you.
  
-## _How_ to use meteor-impact?
+## _How_ to use @empirica/meteor-deploy?
 
 ### Pre-requisites
 
-Before we begin you will install some essential tools that meteor-impact uses:
+Before we begin you will install some essential tools that @empirica/meteor-deploy uses:
 
 1. [pulumi](https://www.pulumi.com) - To install, follow [these instructions](https://www.pulumi.com/docs/get-started/aws/install-pulumi/).
 1. [aws-cli](https://aws.amazon.com/cli/) - To install, follow the instructions on their website, or run `sudo apt-get install awscli` if you are using an ubuntu linux system.
@@ -41,18 +41,18 @@ You will also need an up-to-date version of meteor installed.
 
 ### Install
 
-Finally, install `meteor-impact` through npm, by running the following command in your meteor projects' directory.
+Finally, install `@empirica/meteor-deploy` through npm, by running the following command in your meteor projects' directory.
 
 ```bash
-meteor npm install --save-dev meteor-impact -y
+meteor npm install --save-dev @empirica/meteor-deploy -y
 ```
 
 ### Create a deployment project
 
-Now enable your meteor projects for deployments using `meteor-impact`:
+Now enable your meteor projects for deployments using `@empirica/meteor-deploy`:
 
 ```bash
-npx meteor-impact init --description "This is meteor deployment project"
+npx meteor-deploy init --description "This is meteor deployment project"
 ```
 
 This will install some configuration files to allow you to push infrastructure through pulumi. 
@@ -83,13 +83,13 @@ pulumi stack select
 Now we can add some configuration to the selected stack:
 
 ```bash 
-npx meteor-impact stack configure aws-ecs-ec2 --instanceType t2.medium
+npx meteor-deploy stack configure aws-ecs-ec2 --instanceType t2.medium
 ```
 
 For more configuration options check:
 
 ```bash 
-npx meteor-impact stack configure aws-ecs-ec2 --help
+npx meteor-deploy stack configure aws-ecs-ec2 --help
 ```
 
 ### Authorize access for your AWS Cloud account
@@ -120,26 +120,26 @@ After making changes to your meteor project, you can update your deployment simp
 pulumi up
 ```
 
-#### Update with new versions of `meteor-impact`
+#### Update with new versions of `@empirica/meteor-deploy`
 
-Occasionally `meteor-impact` will issue new releases of the tool that might improve upon your infrastructure.
+Occasionally `@empirica/meteor-deploy` will issue new releases of the tool that might improve upon your infrastructure.
 
 When a new release is available, run the following commands to update your deployment accordingly:
 
 ```bash 
-meteor npm update meteor-impact
-npx meteor-impact init
+meteor npm update @empirica/meteor-deploy
+npx meteor-deploy init
 meteor npm install
 pulumi up
 ```
 
 ## Setup for Development
 
-If you are developing `meteor-impact`, run `npm link` and use the `--developmentMode` flag when initializing your deployment project:
+If you are developing `@empirica/meteor-deploy`, run `npm link` and use the `--developmentMode` flag when initializing your deployment project:
 
 ```bash
-npx meteor-impact init --developmentMode
+npx meteor-deploy init --developmentMode
 ```
 
-This will create symbolic links instead of one-of file-dumps, which is ideal for when you are making frequent changes to the `meteor-impact` package.
+This will create symbolic links instead of one-of file-dumps, which is ideal for when you are making frequent changes to the `@empirica/meteor-deploy` package.
 

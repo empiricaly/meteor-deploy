@@ -1,1 +1,1 @@
-module.exports = require("meteor-impact").default();
+module.exports = require("@empirica/meteor-deploy").default();

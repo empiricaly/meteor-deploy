@@ -1,10 +1,10 @@
 {
-  "name": "meteor-impact",
+  "name": "@empirica/meteor-deploy",
   "version": "1.0.0",
   "description": "A simple tool to facilitate deploying meteor projects to the cloud for production.",
   "main": "dist/index.js",
   "bin": {
-    "meteor-impact": "dist/cli.js"
+    "meteor-deploy": "dist/cli.js"
   },
   "scripts": {
     "test": "mocha",
