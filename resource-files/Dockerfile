@@ -13,7 +13,7 @@ COPY . .
 RUN meteor npm install --only production
 RUN meteor build --directory /usr/local/meteor-app --server-only
 WORKDIR /usr/local/meteor-app/bundle/programs/server
-RUN meteor npm install
+RUN meteor npm install --only production
 RUN meteor npm install --save bcrypt
 
 # Stage 1:
