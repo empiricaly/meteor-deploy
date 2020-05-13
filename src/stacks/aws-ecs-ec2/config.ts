@@ -53,7 +53,7 @@ export function getConfigSchema(): ConfigSchema {
         .describe("The root url at which the application will be hosted"),
 
       memory: schema.NumberField.required()
-        .default(1024)
+        .default(368)
         .range({ min: 0 })
         .commandOption("--app:memory <number>")
         .describe(
@@ -78,7 +78,7 @@ export function getConfigSchema(): ConfigSchema {
 
     database: {
       memory: schema.NumberField.required()
-        .default(1024)
+        .default(368)
         .range({ min: 0 })
         .commandOption("--db:memory <number>")
         .describe(
