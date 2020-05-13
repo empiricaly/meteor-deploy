@@ -1,21 +1,20 @@
-import { describe, Suite } from "mocha";
+import { describe } from "@jest/globals";
+import { Global } from "@jest/types";
 import { ROOT } from "root";
 import { relative, parse, join } from "path";
 
-type SuiteFunction = (this: Suite) => void;
-
 export function describeFile(
   filename: string,
-  fn: SuiteFunction
+  suite: Global.BlockFn
 ): ReturnType<typeof describe> {
   const { dir, name } = parse(relative(ROOT, filename));
 
-  return describe(join(dir, name.replace(/\.test/, "")), fn);
+  return describe(join(dir, name.replace(/\.test/, "")), suite);
 }
 
 export function describeFn(
   fn: Function,
-  suite: SuiteFunction
+  suite: Global.BlockFn
 ): ReturnType<typeof describe> {
   return describe(`${fn.name}()`, suite);
 }

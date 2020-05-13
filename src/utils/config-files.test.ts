@@ -1,4 +1,4 @@
-import { it } from "mocha";
+import { it } from "@jest/globals";
 import { isDestructiveConfigurationChange } from "./config-files";
 import { describeFile, describeFn } from "/src/test-utils";
 import assert from "assert";
