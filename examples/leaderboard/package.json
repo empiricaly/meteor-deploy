@@ -1,0 +1,8 @@
+{
+  "name": "leaderboard",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+      "@babel/runtime": "^7.9.6"
+  }
+}
