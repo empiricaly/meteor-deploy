@@ -1,5 +1,5 @@
 @empirica/meteor-deploy
-=============
+=======================
 **(Work in Progress!)** 
 
 A simple tool to facilitate deploying meteor projects to the cloud for production.
@@ -31,11 +31,13 @@ However if you do need production grade database-hosting (with full back-up solu
 
 ### Pre-requisites
 
-Before we begin you will install some essential tools that @empirica/meteor-deploy uses:
+Before we begin you need to do the following:
 
-1. [pulumi](https://www.pulumi.com) - To install, follow [these instructions](https://www.pulumi.com/docs/get-started/aws/install-pulumi/).
-1. [aws-cli](https://aws.amazon.com/cli/) - To install, follow the instructions on their website, or run `sudo apt-get install awscli` if you are using an ubuntu linux system.
-1. [node-js](https://nodejs.dev) - A separate node-js installation is needed, because meteor's inbuilt nodejs version is out of date. [How to install nodejs](https://nodejs.dev/how-to-install-nodejs)
+1. [Meteor](https://meteor.com) - If you haven't done this already, you will need to [install meteor](https://www.meteor.com/install).
+1. [Pulumi](https://www.pulumi.com) - To install, follow [these instructions](https://www.pulumi.com/docs/get-started/aws/install-pulumi/).
+1. For deployments to the AWS cloud please follow [the instructions here](https://www.pulumi.com/docs/intro/cloud-providers/aws/setup/).
+1. [Node JS](https://nodejs.dev) - meteor-deploy requires a separate node-js installation, because meteor's inbuilt nodejs version is out of date. [How to install nodejs](https://nodejs.dev/how-to-install-nodejs)
+1. [Docker](https://docker.io) - meteor-deploy instructs pulumi to build a docker image. For this you need to [install docker](https://www.docker.com/get-started).
 
 You will also need an up-to-date version of meteor installed.
 
@@ -65,19 +67,10 @@ meteor npm install
 
 ### Configure a deployment stack
 
-With the newly created deployment, create new pulumi deployment stack:
+With the newly created deployment, create select a new pulumi deployment stack:
 
 ```bash
-pulumi stack init
-```
-This command will prompt you for name for your deployment stack.
-
-Choose a suitable name for your stack. Ideally this name should be unique within the cloud-account that you are using.
-
-When created make sure that the stack that you have created is also selected:
-
-```bash
-pulumi stack select
+pulumi stack select -c dev
 ```
 
 Now we can add some configuration to the selected stack:
@@ -90,18 +83,6 @@ For more configuration options check:
 
 ```bash 
 npx meteor-deploy stack configure aws-ecs-ec2 --help
-```
-
-### Authorize access for your AWS Cloud account
-
-Before we can start running deployments, we need to prepare the aws-cli to run the cloud.
-
-For this you will need to set up an IAM user with full permissions to various AWS services. For security reasons it is recommended that you use separate AWS cloud account for each project. 
-
-Once you have obtained an `API_KEY` and `API_SECRET` for that aws user run the following command to allow the aws-cli tool to access your cloud account:
-
-```bash
-aws-cli configure
 ```
 
 ### Deploy 

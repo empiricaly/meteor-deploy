@@ -1,8 +1,4 @@
-import {
-  ExecutionEvents,
-  InitializationStep,
-  Initializer,
-} from "./utils/initializer";
+import { ExecutionEvents, InitializationStep, Initializer } from "./utils";
 import { EventEmitter } from "/src/utils/events";
 
 export class Wrapper<T extends Initializer & ExecutionEvents>
