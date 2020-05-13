@@ -1,5 +1,17 @@
 import { Region } from "@pulumi/aws";
+import { output, runtime, Input } from "@pulumi/pulumi";
+import { Tags } from "@pulumi/aws";
 import { Schema, StringField } from "/src/utils/schema";
+
+export function registerAutoTags(tags: Input<Tags>): void {
+  runtime.registerStackTransformation(({ props, opts }) => {
+    props["tags"] = output(tags).apply((tags) => ({
+      ...tags,
+      ...props["tags"],
+    }));
+    return { props, opts };
+  });
+}
 
 export type Config = {
   region: Region;
