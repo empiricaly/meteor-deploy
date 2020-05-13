@@ -1,4 +1,5 @@
 import {
+  fileProber,
   getPackageInfo,
   Indent,
   PulumiProjectConfigFileObject,
@@ -148,6 +149,10 @@ export class PulumiProjectInitializer extends Wrapper<CoreInitializer> {
     developmentMode?: boolean;
     pulumiProgram?: string;
   } = {}): this {
+    if (!fileProber.exists(path.join(meteorDirectory, ".meteor"))) {
+      throw new Error(`'${meteorDirectory}' is not a valid meteor project`);
+    }
+
     return this.addMeteorIgnore(meteorDirectory, [pulumiProgram])
       .addDockerIgnore(meteorDirectory, [pulumiProgram])
       .addResourceFiles(
