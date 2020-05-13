@@ -54,9 +54,13 @@ export class PulumiProjectInitializer extends Wrapper<CoreInitializer> {
   addDockerIgnore(dir: string, extraEntries: string[] = []): this {
     this.fileInitializer.addIgnoreEntries(
       [
+        "Dockerfile",
+        ".dockerignore",
         ".meteor/local",
         "Pulumi.yaml",
         "Pulumi.*.yaml",
+        "Pulumi.yml",
+        "Pulumi.*.yml",
         ...DEVELOPMENT_ARTIFACTS,
         ...extraEntries,
       ],
