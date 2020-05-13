@@ -12,11 +12,10 @@ export function createAppImage(
   return ecsX.Image.fromDockerBuild(repository, {
     context,
     args: {
-      NODE_VERSION: getProgramVersion(
-        "meteor --allow-superuser node --version",
-        { cwd: context }
-      ),
-      METEOR_VERSION: getProgramVersion("meteor --allow-superuser --version", {
+      NODE_VERSION: getProgramVersion("meteor node --version", {
+        cwd: context,
+      }),
+      METEOR_VERSION: getProgramVersion("meteor --version", {
         cwd: context,
       }),
     },
