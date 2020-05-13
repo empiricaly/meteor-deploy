@@ -6,20 +6,22 @@ ARG NODE_VERSION=latest
 
 FROM empiricaly/meteor:$METEOR_VERSION AS builder
 
+ENV METEOR_ALLOW_SUPERUSER 1
+
 WORKDIR /usr/local/meteor-src
 COPY . .
-RUN meteor npm --allow-superuser install --only production
-RUN meteor build --allow-superuser --directory /usr/local/meteor-app
+RUN meteor npm install --only production
+RUN meteor build --directory /usr/local/meteor-app --server-only
 WORKDIR /usr/local/meteor-app/bundle/programs/server
-RUN meteor npm --release "$METEOR_VERSION" install
-RUN meteor npm --release "$METEOR_VERSION" --allow-superuser install --save bcrypt
+RUN meteor npm install
+RUN meteor npm install --save bcrypt
 
 # Stage 1:
 # Deploy production bundle on nodejs server
 FROM node:$NODE_VERSION
 
 WORKDIR /usr/local/meteor-app
-COPY --from=0 /usr/local/meteor-app/bundle .
+COPY --from=builder /usr/local/meteor-app/bundle .
 
 ENV BIND_IP ""
 ENV DISABLE_WEBSOCKETS ""
