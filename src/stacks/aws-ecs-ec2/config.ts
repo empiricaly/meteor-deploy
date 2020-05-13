@@ -1,4 +1,4 @@
-import { ec2 } from "@pulumi/aws";
+import { ec2, Tags } from "@pulumi/aws";
 import { JsonableObj, schema } from "/src/utils";
 
 export type Config = {
@@ -20,6 +20,8 @@ export type Config = {
     mongoTag: string;
     memory: number;
   };
+  tags?: Tags;
+  disableProjectTags?: boolean;
 };
 
 export type ConfigSchema = schema.OpinionatedSchema<Config>;
@@ -91,5 +93,15 @@ export function getConfigSchema(): ConfigSchema {
           "Specify the MongoDB version to use. Available options: https://hub.docker.com/_/mongo?tab=tags"
         ),
     },
+
+    tags: schema.ObjectField.optional<Tags>().describe(
+      "Additional tags to add to all provisioned AWS resources"
+    ),
+
+    disableProjectTags: schema.BooleanField.optional()
+      .describe("Do not add default project tags to provisioned resources")
+      .commandOption("--disable-default-tags")
+      // XXX default is true as auto-tagging is currently broken.
+      .default(true),
   };
 }

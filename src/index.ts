@@ -13,6 +13,7 @@ function helpFixingConfig<T>(configKey: string, allowedValues: T[]): string {
 
 export default async function (): Promise<StackOutput> {
   const stackName = pulumi.getStack();
+  const projectName = pulumi.getProject();
   if (!stackName) {
     throw new Error(
       "No stack selected. Please select one with 'pulumi stack select'"
@@ -41,6 +42,6 @@ export default async function (): Promise<StackOutput> {
   const config = getConfig(schema, pulumiConfig);
 
   return config.apply((config) =>
-    stack.createStack(stackName, (config as unknown) as Config)
+    stack.createStack(projectName, stackName, (config as unknown) as Config)
   ) as StackOutput;
 }
