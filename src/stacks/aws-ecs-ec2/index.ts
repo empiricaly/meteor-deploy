@@ -23,6 +23,8 @@ import { createApplicationListener, getUrl } from "./routing";
 import { StackOutput } from "/src/stacks";
 export * from "./config";
 
+export const stackType = "aws-ecs-ec2";
+
 export async function createStack(
   stackName: string,
   { publicKey, ...config }: Config,

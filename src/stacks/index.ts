@@ -17,16 +17,26 @@ interface StackRegistryEntry<
   readonly cloud: CloudName;
   getConfigSchema(): Schema;
   createStack(
+    projectName: string,
     stackName: string,
     config: Config,
     options?: StackCreationOptions
   ): StackOutput | Promise<StackOutput>;
 }
 
+export type GetConfig<
+  Stack extends StackRegistryEntry<object, object>
+> = Stack extends StackRegistryEntry<infer Schema, infer Config>
+  ? Config
+  : never;
+
 export const stacks: {
-  "aws-ecs-ec2": StackRegistryEntry<awsEcsEc2.ConfigSchema, awsEcsEc2.Config>;
+  [awsEcsEc2.stackType]: StackRegistryEntry<
+    awsEcsEc2.ConfigSchema,
+    awsEcsEc2.Config
+  >;
 } = {
-  "aws-ecs-ec2": {
+  [awsEcsEc2.stackType]: {
     ...awsEcsEc2,
     description: "Deploy on AWS ECS using EC2 instances",
   },
