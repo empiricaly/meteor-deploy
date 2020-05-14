@@ -1,7 +1,8 @@
+import { Input } from "@pulumi/pulumi";
 import { ecs } from "@pulumi/aws";
-import { ecs as ecsX, ecr as ecrX, lb as lbX } from "@pulumi/awsx";
+import { ecs as ecsX, ecr as ecrX } from "@pulumi/awsx";
 import { getProgramVersion, JsonableObj } from "/src/utils";
-import { getUrl } from "./routing";
+import { ApplicationListenerForTargetGroup } from "./routing";
 
 type ContainerImage = ecsX.Image | string;
 
@@ -19,7 +20,6 @@ export function createAppImage(
         cwd: context,
       }),
     },
-    cacheFrom: true,
   });
 }
 
@@ -32,7 +32,7 @@ export function createAppContainer(
     env = [],
   }: {
     memory: number;
-    rootUrl?: string;
+    rootUrl: Input<string>;
     meteorSettings?: JsonableObj;
     env?: { name: string; value: string }[];
   },
@@ -41,7 +41,7 @@ export function createAppContainer(
     alb,
   }: {
     databaseContainerName: string;
-    alb: lbX.ApplicationListener;
+    alb: ApplicationListenerForTargetGroup;
   }
 ): ecsX.Container {
   return {
@@ -54,11 +54,13 @@ export function createAppContainer(
       },
       {
         name: "PORT",
-        value: alb.endpoint.port.apply((port) => port.toString()),
+        value: alb.defaultTargetGroup.targetGroup.port.apply(
+          (port) => `${port}`
+        ),
       },
       {
         name: "ROOT_URL",
-        value: rootUrl || getUrl(alb),
+        value: rootUrl,
       },
       {
         name: "METEOR_SETTINGS",

@@ -4,6 +4,11 @@ import { JsonableObj, schema } from "/src/utils";
 export type Config = {
   instanceType: ec2.InstanceType;
   publicKey?: string;
+  domain?: {
+    zoneId?: string;
+    name: string;
+    ttl: number;
+  };
   https?: {
     certificateArn: string;
   };
@@ -39,6 +44,25 @@ export function getConfigSchema(): ConfigSchema {
       .describe(
         "The type of EC2 instances to use. Select one from: https://aws.amazon.com/ec2/instance-types/"
       ),
+
+    domain: schema.ObjectField.optional({
+      zoneId: schema.StringField.optional()
+        .describe(
+          "Route53 hosted zone ID to which the domain should be added to"
+        )
+        .commandOption("--domain:zoneId <string>"),
+      name: schema.StringField.required()
+        .commandOption("--domain:name <domain>")
+        .describe(
+          "Domain name to be used as the primary domain. If no zoneId is set, then this is treated as a fqdn. Otherwise it is treated as a sub-domain."
+        )
+        .pattern(/^[^:/@]+$/),
+      ttl: schema.NumberField.required()
+        .commandOption("--dommain:ttl <number>")
+        .describe("TTL for the domain record, applicable when zoneId is set.")
+        .default(5)
+        .range({ min: 0 }),
+    }),
 
     https: schema.ObjectField.optional({
       certificateArn: schema.StringField.required()

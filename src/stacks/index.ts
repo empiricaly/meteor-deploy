@@ -7,7 +7,7 @@ type StackCreationOptions = {
   meteorDirectory?: string;
 };
 
-export type StackOutput = Input<{ url: string }>;
+export type StackOutput = { url: Input<string> };
 
 interface StackRegistryEntry<
   Schema extends object,

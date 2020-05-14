@@ -64,6 +64,7 @@
         "@types/js-yaml": "^3.12.3",
         "@types/node": "^13.9.8",
         "@types/semver": "^7.1.0",
+        "abbreviate": "0.0.3",
         "commander": "^5.0.0",
         "detect-indent": "^6.0.0",
         "edit-json-file": "^1.4.0",

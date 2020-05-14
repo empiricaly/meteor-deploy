@@ -1,4 +1,4 @@
-import { output } from "@pulumi/pulumi";
+import { Input, log } from "@pulumi/pulumi";
 import { allowEfsAccess, createSecurityGroup, createVpc } from "./network";
 import {
   createDatabaseEfsVolumes,
@@ -22,6 +22,8 @@ import { Config } from "./config";
 import { createApplicationListener, getUrl } from "./routing";
 import { StackOutput } from "/src/stacks";
 import { configureTags } from "./tags";
+import { createDomainRecord } from "/src/stacks/aws-ecs-ec2/domain";
+import { hostname } from "os";
 export * from "./config";
 
 export const stackType = "aws-ecs-ec2";
@@ -29,7 +31,7 @@ export const stackType = "aws-ecs-ec2";
 export async function createStack(
   projectName: string,
   stackName: string,
-  { publicKey, tags, disableProjectTags, ...config }: Config,
+  { publicKey, tags, disableProjectTags, https, domain, ...config }: Config,
   { meteorDirectory = process.cwd() }: { meteorDirectory?: string } = {}
 ): Promise<StackOutput> {
   configureTags({
@@ -58,13 +60,38 @@ export async function createStack(
 
   const cluster = createCluster(resourcePrefix, { vpc });
 
-  const alb = createApplicationListener(resourcePrefix, { vpc });
+  const alb = createApplicationListener(resourcePrefix, { vpc, https });
 
   const databaseContainerName = "database";
 
+  let domainUrl: Input<string> = getUrl(alb);
+
+  if (domain?.zoneId) {
+    const { zoneId } = domain;
+    const domainRecord = createDomainRecord(resourcePrefix, {
+      ...domain,
+      zoneId,
+      cname: alb.endpoint.hostname,
+    });
+
+    domainUrl = domainRecord.fqdn.apply(
+      (fqdn) => `${https ? "https" : "http"}://${fqdn}`
+    );
+  } else if (domain) {
+    domainUrl = `${https ? "https" : "http"}://${domain.name}`;
+    alb.endpoint.hostname.apply((hostname) =>
+      log.info(
+        `Please add a CNAME Record for the domain '${domain.name}' with the value: ${hostname}`
+      )
+    );
+  }
+
   const appContainer = createAppContainer(
     createAppImage(meteorDirectory, repo),
-    config.app,
+    {
+      rootUrl: domainUrl,
+      ...config.app,
+    },
     { alb, databaseContainerName }
   );
 
@@ -74,7 +101,7 @@ export async function createStack(
     getMountPointsForContainer(databaseVolumes, databaseContainerName)
   );
 
-  const autoscalingGroup = createAutoScalingGroup(resourcePrefix, cluster, {
+  createAutoScalingGroup(resourcePrefix, cluster, {
     instanceType: config.instanceType,
     vpc,
     subnets,
@@ -83,7 +110,7 @@ export async function createStack(
 
   allowEfsAccess(sg, subnets);
 
-  const service = createService(resourcePrefix, {
+  createService(resourcePrefix, {
     cluster,
     containers: {
       app: appContainer,
@@ -92,5 +119,5 @@ export async function createStack(
     volumes: databaseVolumes,
   });
 
-  return output({ url: getUrl(alb) });
+  return { url: domainUrl };
 }
