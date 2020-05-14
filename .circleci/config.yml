@@ -1,2 +1,102 @@
-version: 2.1
-# TODO
+version: 2
+
+defaults: &defaults
+    working_directory: ~/meteor-deploy
+    docker:
+        - image: circleci/node:13.11.0
+
+checkRepoIntegrity: &checkRepoIntegrity
+    name: Check integrity of repository artifacts
+    command: |
+        if git diff --no-ext-diff --quiet --exit-code ; then
+            echo "No files have been changed locally"
+            exit 0
+        else
+            echo "Run install/test/build locally and ensure that all unstaged changes are either added to the repository or to .gitignore:"
+            git diff --exit-code
+            exit 1
+        fi
+
+jobs:
+    install:
+        <<: *defaults
+        steps:
+            - checkout
+            - restore_cache:
+                key: npm-cache-v1-{{ checksum "package-lock.json" }}
+            - run:
+                name: Install Dependencies
+                command: npm ci
+            - run: *checkRepoIntegrity
+            - save_cache:
+                key: npm-cache-v1-{{ checksum "package-lock.json" }}
+                paths:
+                    - /home/circleci/.npm
+            - persist_to_workspace:
+                root: ~/meteor-deploy
+                paths: .
+
+    build:
+        <<: *defaults
+        steps:
+            - attach_workspace:
+                at: ~/meteor-deploy
+            - run:
+                name: Build Types
+                command: npm run build:types
+            - run:
+                name: Build JavaScript
+                command: npm run build:js
+            - run: *checkRepoIntegrity
+            - persist_to_workspace:
+                 root: ~/meteor-deploy
+                 path: .
+    test:
+        <<: *defaults
+        steps:
+            - attach_workspace:
+                at: ~/meteor-deploy
+            - run:
+                name: lint
+                command: npm run lint
+            - run:
+                name: Type checks
+                command: npm run type-check
+            - run:
+                name: Run Tests
+                command: npm test
+            - persist_to_workspace:
+                root: ~/meteor-deploy
+                paths: .
+    deploy:
+        <<: *defaults
+        steps:
+            - attach_workspace:
+                at: ~/meteor-deploy
+            - run:
+                name: Authenticate with registry
+                command: echo "//registry.npmjs.org/:_authToken=$npm_TOKEN" > .npmrc
+            - run:
+                name: Publish Package
+                command: npm publish
+
+workflows:
+    version: 2
+    main:
+        jobs:
+            - install
+            - build:
+                requires:
+                    - install
+            - test:
+                requires:
+                    - install
+            - deploy:
+                requires:
+                    - build
+                    - test
+                filters:
+                    tags:
+                        only: /^v.*/
+                    branches:
+                        ignore: /.*/
