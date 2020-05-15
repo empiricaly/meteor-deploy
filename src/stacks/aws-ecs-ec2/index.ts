@@ -23,7 +23,6 @@ import { createApplicationListener, getUrl } from "./routing";
 import { StackOutput } from "/src/stacks";
 import { configureTags } from "./tags";
 import { createDomainRecord } from "/src/stacks/aws-ecs-ec2/domain";
-import { hostname } from "os";
 export * from "./config";
 
 export const stackType = "aws-ecs-ec2";
