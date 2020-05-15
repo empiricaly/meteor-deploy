@@ -14,8 +14,8 @@
         "build": "npm run build:types && npm run build:js",
         "build:types": "tsc --emitDeclarationOnly",
         "build:js": "babel src --out-dir dist --extensions \".ts,.tsx\" --source-maps inline",
-        "lint": "eslint src/**/*.ts",
-        "lint:ci": "eslint src/**/*.ts --format junit"
+        "lint": "eslint --ext .ts src",
+        "lint:ci": "eslint --ext .ts --format junit src"
     },
     "repository": {
         "type": "git",
