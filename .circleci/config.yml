@@ -61,7 +61,7 @@ jobs:
                 command: npm run type-check
             - run:
                 name: Lint
-                command: npm run lint:ci --output-file ~/reports/lint.xml
+                command: npm run lint:ci -- --output-file ~/reports/lint.xml
             - run:
                 name: Run Tests
                 command: npm run test:ci
