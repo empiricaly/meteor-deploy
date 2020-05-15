@@ -8,12 +8,14 @@
     },
     "scripts": {
         "test": "jest",
+        "test:ci": "jest --ci --runInBand --reporters=default --reporters=jest-junit",
         "type-check": "tsc --noEmit",
         "type-check:watch": "npm run type-check -- --watch",
         "build": "npm run build:types && npm run build:js",
         "build:types": "tsc --emitDeclarationOnly",
         "build:js": "babel src --out-dir dist --extensions \".ts,.tsx\" --source-maps inline",
-        "lint": "eslint src/**/*.ts"
+        "lint": "eslint src/**/*.ts",
+        "lint:ci": "eslint src/**/*.ts --format junit"
     },
     "repository": {
         "type": "git",
@@ -51,6 +53,7 @@
         "eslint-plugin-prettier": "^3.1.2",
         "husky": "^4.2.3",
         "jest": "^26.0.1",
+        "jest-junit": "^10.0.0",
         "lint-staged": "^10.1.1",
         "prettier": "^2.0.2",
         "tsconfig-paths": "^3.9.0",
