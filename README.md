@@ -67,22 +67,16 @@ meteor npm install
 
 ### Configure a deployment stack
 
-With the newly created deployment, create select a new pulumi deployment stack:
+With the newly created deployment, select a new pulumi deployment stack:
 
 ```bash
 pulumi stack select -c dev
 ```
 
-Now we can add some configuration to the selected stack:
+Apply default configuration to the stack:
 
 ```bash 
-npx meteor-deploy stack configure aws-ecs-ec2 --instanceType t2.medium
-```
-
-For more configuration options check:
-
-```bash 
-npx meteor-deploy stack configure aws-ecs-ec2 --help
+npx meteor-deploy stack configure default
 ```
 
 ### Deploy 
@@ -114,13 +108,57 @@ meteor npm install
 pulumi up
 ```
 
-## Setup for Development
+### Advanced Configuration
 
-If you are developing `@empirica/meteor-deploy`, run `npm link` and use the `--developmentMode` flag when initializing your deployment project:
+Most configuration options can be directly configured (and automatically validated by through meteor-deploy). 
 
-```bash
-npx meteor-deploy init --developmentMode
+See:
+```bash 
+npx meteor-deploy stack configure aws-ecs-ec2 --help
 ```
 
-This will create symbolic links instead of one-of file-dumps, which is ideal for when you are making frequent changes to the `@empirica/meteor-deploy` package.
+#### Upgrade to a more powerful EC2 instance type
 
+By default, meteor-deploy will use t2.micro instances. These are not very powerful. To upgrade the instance type
+run: 
+
+```bash
+npx meteor-deploy stack configure aws-ecs-ec2 --instanceType t2.medium --app:memory: 1024 --db:memory: 1024
+pulumi up
+```
+
+#### Enable HTTPS
+
+Enabling transport encryption through HTTPS is highly recommended. You first need to create a certificate on the 
+[AWS Certificate manager (ACM)](https://aws.amazon.com/certificate-manager/). 
+
+For this you have three possible options:
+
+* [Request a public certificate](https://docs.aws.amazon.com/acm/latest/userguide/gs-acm-request-public.html), if your domain is public.
+* [Request a private certificate](https://docs.aws.amazon.com/acm/latest/userguide/gs-acm-request-private.html), for private domains 
+* [Import your own certificate](https://docs.aws.amazon.com/acm/latest/userguide/import-certificate-api-cli.html), if you already have a certificate that you can use.
+
+Once your certificate is ready on ACM, copy its ARN and add it to the configuration:
+
+```bash 
+pulumi config set --path https.certificateArn <paste your certificate arn>
+pulumi config set --path domain.name mydomain.example.com
+pulumi up
+```
+
+You will need to manually create CNAME Record for your domain mydomain.example.com your DNS. 
+
+#### Automatically create CNAME entries for your domain through AWS Route53
+
+If your domain is hosted on [AWS Route53](https://aws.amazon.com/route53/), then meteor-deploy can add the CNAME entry for you. 
+Simply copy and paste your Route53 ZoneID like this:
+
+```
+pulumi config set --path domain.name mydomain
+pulumi config set --path domain.zoneId <paste your zone id here>
+pulumi up
+```
+
+Note that when setting `domain.zoneId`, `domain.name` needs to be the name of the subdomain of the domain that the zone id refers to.
+
+If no zone-id is set then `domain.name` needs to be a fully qualified domain name.
