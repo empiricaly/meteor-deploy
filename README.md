@@ -162,3 +162,22 @@ pulumi up
 Note that when setting `domain.zoneId`, `domain.name` needs to be the name of the subdomain of the domain that the zone id refers to.
 
 If no zone-id is set then `domain.name` needs to be a fully qualified domain name.
+
+
+#### SSH Access
+
+You can access EC2 instances that host the service through SSH. To enable SSH access you need a setup a ssh key.
+
+Given a public ssh key at `~/.ssh/id_rsa.pub`, add it to your stack:
+
+```bash 
+pulumi config set publicKey "$(cat ~/.ssh/id_rsa.pub)"
+pulumi up
+```
+
+Find your deployed cluster at https://console.aws.amazon.com/ecs/home and then open "ECS Instances". 
+Click on the EC2 instance link in the table of running instances and look for it's ip domain alias to ssh into.
+
+```bash 
+ssh ec2-user@<ec2 instance>
+```
