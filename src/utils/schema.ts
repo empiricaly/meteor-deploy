@@ -1,5 +1,4 @@
 import { JsonableArray, JsonableObj } from "./jsonable";
-
 export interface CommanderOptionConfigurator<T> {
   readonly cliFlags?: string;
   commandOption(flagName: string, typeName?: string): this;
@@ -84,7 +83,7 @@ export abstract class Field<T>
 
   assert(value: unknown): T {
     if (!this.validate(value)) {
-      throw new Error(`Value is invalid '${value}'`);
+      throw new Error(`Encountered invalid value '${JSON.stringify(value)}'`);
     }
 
     return value;
