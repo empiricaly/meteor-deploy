@@ -1,8 +1,11 @@
 import { Input, log } from "@pulumi/pulumi";
 import { allowEfsAccess, createSecurityGroup, createVpc } from "./network";
 import {
+  createDatabaseBlockStorageVolumes,
   createDatabaseEfsVolumes,
   getMountPointsForContainer,
+  isBlockStorageVolume,
+  VolumeDefinition,
 } from "./storage";
 import {
   createAutoScalingGroup,
@@ -30,7 +33,15 @@ export const stackType = "aws-ecs-ec2";
 export async function createStack(
   projectName: string,
   stackName: string,
-  { publicKey, tags, disableProjectTags, https, domain, ...config }: Config,
+  {
+    publicKey,
+    tags,
+    disableProjectTags,
+    https,
+    domain,
+    database,
+    ...config
+  }: Config,
   { meteorDirectory = process.cwd() }: { meteorDirectory?: string } = {}
 ): Promise<StackOutput> {
   configureTags({
@@ -48,12 +59,25 @@ export async function createStack(
     vpc.publicSubnets,
   ]);
 
-  const sg = createSecurityGroup(resourcePrefix, { vpc });
+  let databaseVolumes: VolumeDefinition<"database">[] = [];
 
-  const databaseVolumes = createDatabaseEfsVolumes(resourcePrefix, {
-    subnets: privateSubnets,
-    sg,
-  });
+  if (database.storageType === "efs") {
+    const sg = createSecurityGroup(resourcePrefix, { vpc });
+
+    databaseVolumes = createDatabaseEfsVolumes(resourcePrefix, {
+      subnets: privateSubnets,
+      sg,
+    });
+
+    allowEfsAccess(sg, subnets);
+  }
+
+  if (database.storageType === "ebs") {
+    databaseVolumes = createDatabaseBlockStorageVolumes(
+      `${resourcePrefix}-ebs`,
+      database.ebsVolumeSizes
+    );
+  }
 
   const keyPair = publicKey && createKeyPair(resourcePrefix, publicKey);
 
@@ -95,8 +119,8 @@ export async function createStack(
   );
 
   const dbContainer = createDbContainer(
-    createDbImage(config.database.mongoTag),
-    config.database,
+    createDbImage(database.mongoTag),
+    database,
     getMountPointsForContainer(databaseVolumes, databaseContainerName)
   );
 
@@ -105,9 +129,8 @@ export async function createStack(
     vpc,
     subnets,
     keyName: keyPair ? keyPair.keyName : undefined,
+    ebsVolumes: databaseVolumes.filter(isBlockStorageVolume),
   });
-
-  allowEfsAccess(sg, subnets);
 
   createService(resourcePrefix, {
     cluster,

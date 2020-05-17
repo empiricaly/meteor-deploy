@@ -35,6 +35,7 @@ const defaultStack: StackConfig<typeof defaultStackType> = {
     database: {
       memory: 368,
       mongoTag: "latest",
+      storageType: "ebs",
     },
     // XXX currently auto-tags do not work yet.
     disableProjectTags: true,

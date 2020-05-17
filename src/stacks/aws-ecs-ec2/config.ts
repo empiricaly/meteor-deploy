@@ -1,5 +1,6 @@
 import { ec2, Tags } from "@pulumi/aws";
 import { JsonableObj, schema } from "/src/utils";
+import { StorageType, DatabaseVolumeName } from "./storage";
 
 export type Config = {
   instanceType: ec2.InstanceType;
@@ -24,6 +25,8 @@ export type Config = {
   database: {
     mongoTag: string;
     memory: number;
+    storageType: StorageType;
+    ebsVolumeSizes?: Record<DatabaseVolumeName, number | undefined>;
   };
   tags?: Tags;
   disableProjectTags?: boolean;
@@ -99,7 +102,7 @@ export function getConfigSchema(): ConfigSchema {
         ),
       })
         .default([])
-        .describe("Run time environment variables"),
+        .describe("Runtime environment variables"),
     },
 
     database: {
@@ -116,6 +119,17 @@ export function getConfigSchema(): ConfigSchema {
         .describe(
           "Specify the MongoDB version to use. Available options: https://hub.docker.com/_/mongo?tab=tags"
         ),
+      storageType: schema.StringField.required<StorageType>()
+        .commandOption("--db:storage-type <string>")
+        .allowed("efs", "ebs")
+        .default("ebs")
+        .describe("The type of persistent storage to use for the database"),
+      ebsVolumeSizes: schema.ObjectField.optional<
+        Record<DatabaseVolumeName, number | undefined>
+      >({
+        db: schema.NumberField.optional().range({ min: 0 }).default(30),
+        configdb: schema.NumberField.optional().range({ min: 0 }).default(1),
+      }),
     },
 
     tags: schema.ObjectField.optional<Tags>().describe(
