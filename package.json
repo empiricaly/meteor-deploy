@@ -8,6 +8,7 @@
     },
     "scripts": {
         "test": "jest",
+        "test:watch": "jest --watch",
         "test:ci": "jest --ci --runInBand --reporters=default --reporters=jest-junit",
         "type-check": "tsc --noEmit",
         "type-check:watch": "npm run type-check -- --watch",
