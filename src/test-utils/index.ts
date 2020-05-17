@@ -18,3 +18,10 @@ export function describeFn(
 ): ReturnType<typeof describe> {
   return describe(`${fn.name}()`, suite);
 }
+
+export function describeClass(
+  cls: Function,
+  suite: Global.BlockFn
+): ReturnType<typeof describe> {
+  return describe(`class ${cls.name}`, suite);
+}
