@@ -26,7 +26,9 @@ export type Config = {
     mongoTag: string;
     memory: number;
     storageType: StorageType;
-    ebsVolumeSizes?: Record<DatabaseVolumeName, number | undefined>;
+    ebsRexrayVolumeSizes?: Record<DatabaseVolumeName, number | undefined>;
+    ebsVolumeSize?: number;
+    ebsSnapshotId?: string;
   };
   tags?: Tags;
   disableProjectTags?: boolean;
@@ -121,15 +123,25 @@ export function getConfigSchema(): ConfigSchema {
         ),
       storageType: schema.StringField.required<StorageType>()
         .commandOption("--db:storage-type <string>")
-        .allowed("efs", "ebs")
+        .allowed("efs", "ebs", "ebs-rexray")
         .default("ebs")
         .describe("The type of persistent storage to use for the database"),
-      ebsVolumeSizes: schema.ObjectField.optional<
+      ebsRexrayVolumeSizes: schema.ObjectField.optional<
         Record<DatabaseVolumeName, number | undefined>
       >({
         db: schema.NumberField.optional().range({ min: 0 }).default(30),
         configdb: schema.NumberField.optional().range({ min: 0 }).default(1),
       }),
+      ebsVolumeSize: schema.NumberField.optional()
+        .range({ min: 0 })
+        .default(10)
+        .commandOption("--db:ebs-volume-size <Gigabytes>")
+        .describe(
+          "Size in Gigabytes for persistent storage (applicable for storageType=ebs)"
+        ),
+      ebsSnapshotId: schema.StringField.optional()
+        .describe("Restores database from the given EBS-snapshot")
+        .commandOption("--db:ebs-snapshot <snapshotId>"),
     },
 
     tags: schema.ObjectField.optional<Tags>().describe(

@@ -1,14 +1,20 @@
-import { Input, log } from "@pulumi/pulumi";
+import { Input, log, output } from "@pulumi/pulumi";
+import { getRegion } from "@pulumi/aws";
+
 import { allowEfsAccess, createSecurityGroup, createVpc } from "./network";
 import {
-  createDatabaseBlockStorageVolumes,
+  createDatabaseRexrayStorageVolumes,
   createDatabaseEfsVolumes,
   getMountPointsForContainer,
-  isBlockStorageVolume,
   VolumeDefinition,
+  createDatabaseLocalStorageVolumes,
+  mountLocalFileSystemScript,
+  createEbsVolume,
+  installRexrayScript,
 } from "./storage";
 import {
   createAutoScalingGroup,
+  createAutoScalingInstanceProfile,
   createCluster,
   createService,
 } from "./compute";
@@ -21,11 +27,12 @@ import {
 } from "./container";
 import { createKeyPair } from "./security";
 
-import { Config } from "./config";
+import { Config, getConfigSchema } from "./config";
 import { createApplicationListener, getUrl } from "./routing";
 import { StackOutput } from "/src/stacks";
 import { configureTags } from "./tags";
-import { createDomainRecord } from "/src/stacks/aws-ecs-ec2/domain";
+import { createDomainRecord } from "./domain";
+
 export * from "./config";
 
 export const stackType = "aws-ecs-ec2";
@@ -44,6 +51,8 @@ export async function createStack(
   }: Config,
   { meteorDirectory = process.cwd() }: { meteorDirectory?: string } = {}
 ): Promise<StackOutput> {
+  const schema = getConfigSchema();
+
   configureTags({
     disableProjectTags: disableProjectTags,
     optionsForProjectTags: { stackName, projectName },
@@ -52,12 +61,20 @@ export async function createStack(
 
   const resourcePrefix = `${projectName}-${stackName}`;
   const repo = createContainerRegistry(resourcePrefix);
+
   const vpc = createVpc(resourcePrefix);
 
   const [subnets, privateSubnets] = await Promise.all([
     vpc.publicSubnets,
-    vpc.publicSubnets,
+    vpc.privateSubnets,
   ]);
+
+  // XXX Since pulumi-crosswalk does not support defining availability zones on autoscaling groups, we cheat it by
+  // constraining the subnets instead. This is required, because EBS Volumes are not multi-az.
+  // https://github.com/pulumi/pulumi-awsx/issues/536
+  const [ebsSubnet] = subnets;
+  const autoscalerSubnets =
+    database.storageType === "ebs" ? [ebsSubnet] : subnets;
 
   let databaseVolumes: VolumeDefinition<"database">[] = [];
 
@@ -72,16 +89,49 @@ export async function createStack(
     allowEfsAccess(sg, subnets);
   }
 
-  if (database.storageType === "ebs") {
-    databaseVolumes = createDatabaseBlockStorageVolumes(
-      `${resourcePrefix}-ebs`,
-      database.ebsVolumeSizes
-    );
-  }
-
   const keyPair = publicKey && createKeyPair(resourcePrefix, publicKey);
 
   const cluster = createCluster(resourcePrefix, { vpc });
+
+  let userData: Input<string> | undefined;
+
+  if (database.storageType === "ebs-rexray") {
+    databaseVolumes = createDatabaseRexrayStorageVolumes(
+      `${resourcePrefix}-ebs-rexray`,
+      database.ebsRexrayVolumeSizes
+    );
+
+    userData = output({
+      clusterName: cluster.cluster.name,
+      region: output(getRegion()).apply(({ name }) => name),
+    }).apply(installRexrayScript);
+  }
+
+  const autoscalerDependencies = [];
+
+  if (database.storageType === "ebs") {
+    const persistentStoragePath = "/volumes/ebs";
+
+    const ebsVolume = createEbsVolume(resourcePrefix, {
+      size:
+        database.ebsVolumeSize || schema.database.ebsVolumeSize.defaultValue,
+      availabilityZone: ebsSubnet.subnet.availabilityZone,
+    });
+
+    autoscalerDependencies.push(ebsVolume);
+
+    userData = output({
+      clusterName: cluster.cluster.name,
+      ebsVolumeId: ebsVolume.id,
+      mountPoint: persistentStoragePath,
+      region: getRegion().then(({ name }) => name),
+    }).apply(mountLocalFileSystemScript);
+
+    databaseVolumes = createDatabaseLocalStorageVolumes(
+      resourcePrefix,
+      persistentStoragePath
+    );
+  }
 
   const alb = createApplicationListener(resourcePrefix, { vpc, https });
 
@@ -124,13 +174,26 @@ export async function createStack(
     getMountPointsForContainer(databaseVolumes, databaseContainerName)
   );
 
-  createAutoScalingGroup(resourcePrefix, cluster, {
-    instanceType: config.instanceType,
-    vpc,
-    subnets,
-    keyName: keyPair ? keyPair.keyName : undefined,
-    ebsVolumes: databaseVolumes.filter(isBlockStorageVolume),
-  });
+  const instanceProfile = createAutoScalingInstanceProfile(
+    `${resourcePrefix}-instance-profile`,
+    [database.storageType]
+  );
+
+  createAutoScalingGroup(
+    resourcePrefix,
+    cluster,
+    {
+      instanceType: config.instanceType,
+      vpc,
+      subnets: autoscalerSubnets,
+      keyName: keyPair ? keyPair.keyName : undefined,
+      instanceProfile,
+      userData,
+    },
+    {
+      dependsOn: autoscalerDependencies,
+    }
+  );
 
   createService(resourcePrefix, {
     cluster,
