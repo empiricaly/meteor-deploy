@@ -1,6 +1,7 @@
 export * from "./config-files";
 export * from "./commander";
 export * from "./distinct-names";
+export * from "./device-name";
 export * from "./events";
 export * from "./external-program-tools";
 export * from "./filesystem";
@@ -14,3 +15,4 @@ import * as schema from "./schema";
 export { schema };
 export * from "./user-interface";
 export * from "./commander-config";
+export * from "./remove-indent";
