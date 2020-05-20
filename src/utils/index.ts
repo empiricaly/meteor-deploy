@@ -3,6 +3,7 @@ export * from "./commander";
 export * from "./distinct-names";
 export * from "./device-name";
 export * from "./events";
+export * from "./experimental";
 export * from "./external-program-tools";
 export * from "./filesystem";
 export * from "./indent";

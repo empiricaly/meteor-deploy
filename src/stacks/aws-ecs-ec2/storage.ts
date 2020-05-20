@@ -3,7 +3,11 @@ import { ec2 } from "@pulumi/awsx";
 import { ecs as ecsInput } from "@pulumi/aws/types/input";
 import { PolicyStatement } from "@pulumi/aws/iam";
 import { Input } from "@pulumi/pulumi";
-import { deviceName, removeIndent } from "/src/utils";
+import {
+  deviceName,
+  removeIndent,
+  requireExperimentalModeForFeature,
+} from "/src/utils";
 
 export type StorageType = "efs" | "ebs-rexray" | "ebs";
 
@@ -173,6 +177,7 @@ export function createDatabaseRexrayStorageVolumes(
   resourcePrefix: string,
   volumeSizes: Record<string, number | undefined> = {}
 ): BlockStorageVolume<"database">[] {
+  requireExperimentalModeForFeature("Storage type 'ebs-rexray'");
   return databaseVolumes().map((volume) => {
     const volumeSize = volumeSizes[volume.name] || 10;
     return {
@@ -212,6 +217,7 @@ export function createDatabaseEfsVolumes(
   resourcePrefix: string,
   { subnets, sg }: { subnets: ec2.Subnet[]; sg: ec2.SecurityGroup }
 ): EfsVolume<"database">[] {
+  requireExperimentalModeForFeature("Storage type 'efs'");
   return databaseVolumes()
     .map(
       (volume): EfsVolume<"database"> => ({
@@ -248,6 +254,8 @@ export function installRexrayScript({
   clusterName: string;
   region: string;
 }): string {
+  requireExperimentalModeForFeature("Storage type 'ebs-rexray'");
+
   return removeIndent(`
     #!/bin/bash
     set -e
