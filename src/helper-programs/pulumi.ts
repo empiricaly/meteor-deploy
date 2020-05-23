@@ -4,13 +4,18 @@ import { ROOT } from "/root";
 import { execFileSync } from "child_process";
 import { existsSync } from "fs";
 
+export function installDirectory(parent: string): string {
+  // As hardcoded in scripts/get_pulumi.sh
+  return path.join(parent, ".pulumi");
+}
+
 export function pulumiExecutable(installDir: string): string | null {
-  const pulumi = path.join(installDir, ".pulumi", "bin", "pulumi");
+  const pulumi = path.join(installDir, "bin", "pulumi");
   return existsSync(pulumi) ? pulumi : null;
 }
 
 export function installedPulumiVersion(dir: string): string | null {
-  const pulumi = pulumiExecutable(dir);
+  const pulumi = pulumiExecutable(installDirectory(dir));
   return (
     pulumi &&
     execFileSync(pulumi, ["version"], { encoding: "utf-8" })
