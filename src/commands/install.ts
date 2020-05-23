@@ -1,5 +1,5 @@
 import { Command } from "commander";
-import { install, isInstallable } from "/src/installers";
+import { install, isInstallable } from "/src/helper-programs";
 
 export default async function (program: Command) {
   program
