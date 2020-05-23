@@ -1,5 +1,5 @@
 import { Command } from "commander";
-import { install, isInstallable } from "/src/helper-programs";
+import { installHelperProgram, isHelperProgram } from "/src/helper-programs";
 
 export default async function (program: Command) {
   program
@@ -10,7 +10,9 @@ export default async function (program: Command) {
         nameAndVersion.split("@")
       );
 
-      const notInstallable = programs.filter(([name]) => !isInstallable(name));
+      const notInstallable = programs.filter(
+        ([name]) => !isHelperProgram(name)
+      );
 
       if (notInstallable.length > 0) {
         throw new Error(
@@ -20,6 +22,8 @@ export default async function (program: Command) {
         );
       }
 
-      programs.forEach(([name, version]) => install(name, version));
+      programs.forEach(([name, version]) =>
+        installHelperProgram(name, version)
+      );
     });
 }
