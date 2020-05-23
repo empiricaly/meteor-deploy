@@ -34,8 +34,6 @@ However if you do need production grade database-hosting (with full back-up solu
 Before we begin you need to do the following:
 
 1. [Meteor](https://meteor.com) - If you haven't done this already, you will need to [install meteor](https://www.meteor.com/install).
-1. [Pulumi](https://www.pulumi.com) - To install, follow [these instructions](https://www.pulumi.com/docs/get-started/aws/install-pulumi/).
-1. For deployments to the AWS cloud please follow [the instructions here](https://www.pulumi.com/docs/intro/cloud-providers/aws/setup/).
 1. [Node JS](https://nodejs.dev) - meteor-deploy requires a separate node-js installation, because meteor's inbuilt nodejs version is out of date. [How to install nodejs](https://nodejs.dev/how-to-install-nodejs)
 1. [Docker](https://docker.io) - meteor-deploy instructs pulumi to build a docker image. For this you need to [install docker](https://www.docker.com/get-started).
 
@@ -70,7 +68,7 @@ meteor npm install
 With the newly created deployment, select a new pulumi deployment stack:
 
 ```bash
-pulumi stack select -c dev
+npx meteor-deploy pulumi stack select -c dev
 ```
 
 Apply default configuration to the stack:
@@ -84,7 +82,7 @@ npx meteor-deploy stack configure default
 We are now ready deploy your project to the cloud
 
 ```bash
-pulumi up
+npx meteor-deploy pulumi up
 ```
 
 #### Update deployment with new versions of your meteor project
@@ -92,7 +90,7 @@ pulumi up
 After making changes to your meteor project, you can update your deployment simply through pulumi:
 
 ```
-pulumi up
+npx meteor-deploy pulumi up
 ```
 
 #### Update with new versions of `@empirica/meteor-deploy`
@@ -105,7 +103,7 @@ When a new release is available, run the following commands to update your deplo
 meteor npm update @empirica/meteor-deploy
 npx meteor-deploy init
 meteor npm install
-pulumi up
+npx meteor-deploy pulumi up
 ```
 
 ### Advanced Configuration
@@ -124,7 +122,7 @@ run:
 
 ```bash
 npx meteor-deploy stack configure aws-ecs-ec2 --instanceType t2.medium --app:memory: 1024 --db:memory: 1024
-pulumi up
+npx meteor-deploy pulumi up
 ```
 
 #### Enable HTTPS
@@ -141,9 +139,9 @@ For this you have three possible options:
 Once your certificate is ready on ACM, copy its ARN and add it to the configuration:
 
 ```bash 
-pulumi config set --path https.certificateArn <paste your certificate arn>
-pulumi config set --path domain.name mydomain.example.com
-pulumi up
+npx meteor-deploy pulumi config set --path https.certificateArn <paste your certificate arn>
+npx meteor-deploy pulumi config set --path domain.name mydomain.example.com
+npx meteor-deploy pulumi up
 ```
 
 You will need to manually create CNAME Record for your domain mydomain.example.com your DNS. 
@@ -154,9 +152,9 @@ If your domain is hosted on [AWS Route53](https://aws.amazon.com/route53/), then
 Simply copy and paste your Route53 ZoneID like this:
 
 ```
-pulumi config set --path domain.name mydomain
-pulumi config set --path domain.zoneId <paste your zone id here>
-pulumi up
+npx meteor-deploy pulumi config set --path domain.name mydomain
+npx meteor-deploy pulumi config set --path domain.zoneId <paste your zone id here>
+npx meteor-deploy pulumi up
 ```
 
 Note that when setting `domain.zoneId`, `domain.name` needs to be the name of the subdomain of the domain that the zone id refers to.
@@ -171,8 +169,8 @@ You can access EC2 instances that host the service through SSH. To enable SSH ac
 Given a public ssh key at `~/.ssh/id_rsa.pub`, add it to your stack:
 
 ```bash 
-pulumi config set publicKey "$(cat ~/.ssh/id_rsa.pub)"
-pulumi up
+npx meteor-deploy pulumi config set publicKey "$(cat ~/.ssh/id_rsa.pub)"
+npx meteor-deploy pulumi up
 ```
 
 Find your deployed cluster at https://console.aws.amazon.com/ecs/home and then open "ECS Instances". 
