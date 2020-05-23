@@ -3,7 +3,7 @@ import { describeFile, describeFn } from "/src/test-utils";
 import assert from "assert";
 import { it } from "@jest/globals";
 
-describeFile(__dirname, () => {
+describeFile(__filename, () => {
   describeFn(removeIndent, () => {
     it("should remove the smallest common indent", () => {
       assert.equal(removeIndent(""), "");
