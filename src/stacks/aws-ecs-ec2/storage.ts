@@ -315,48 +315,50 @@ export function mountLocalFileSystemScript({
     return `"$(file -s "${devicePath}")" = "${devicePath}: data"`;
   }
 
-  return removeIndent(`
-    #!/bin/bash
-    set -e
-    echo ECS_CLUSTER="${clusterName}" >> /etc/ecs/ecs.config;
-    echo ECS_BACKEND_HOST= >> /etc/ecs/ecs.config;
-    instanceId=$(curl http://169.254.169.254/latest/meta-data/instance-id)
-    
-    if ! blkid "${devicePath}"; then
-      yum install aws-cli -y
+  return (
+    removeIndent(`
+      #!/bin/bash
+      set -e
+      echo ECS_CLUSTER="${clusterName}" >> /etc/ecs/ecs.config;
+      echo ECS_BACKEND_HOST= >> /etc/ecs/ecs.config;
+      instanceId=$(curl http://169.254.169.254/latest/meta-data/instance-id)
       
-      # Wait for ebs volume to become available, in case it is already attached to another instance.
-      >&2 echo "Waiting for EBS Volume to become available..."
-      if [[ "$(${describeVolume(
-        "Volumes[0].Attachments[0].InstanceId"
-      )})" != "$instanceId" ]]; then
-        /usr/bin/aws ec2 wait volume-available --volume-id "${ebsVolumeId}" --region "${region}"
-      fi
+      if ! blkid "${devicePath}"; then
+        yum install aws-cli -y
         
-      # Attach EBS volume to current instance
-      /usr/bin/aws ec2 attach-volume --device "${devicePath}" --instance-id "$instanceId" --volume-id "${ebsVolumeId}" --region "${region}"
+        # Wait for ebs volume to become available, in case it is already attached to another instance.
+        >&2 echo "Waiting for EBS Volume to become available..."
+        if [[ "$(${describeVolume(
+          "Volumes[0].Attachments[0].InstanceId"
+        )})" != "$instanceId" ]]; then
+          /usr/bin/aws ec2 wait volume-available --volume-id "${ebsVolumeId}" --region "${region}"
+        fi
+          
+        # Attach EBS volume to current instance
+        /usr/bin/aws ec2 attach-volume --device "${devicePath}" --instance-id "$instanceId" --volume-id "${ebsVolumeId}" --region "${region}"
+        
+        >&2 printf "Waiting for EBS volume to be attached."
+        until [ "$(${describeVolume(
+          "Volumes[0].Attachments[0].State"
+        )})" = attached ]; do
+          sleep 5
+          >&2 printf .
+        done
+        
+        >&2 echo ".. Done"
+      fi
       
-      >&2 printf "Waiting for EBS volume to be attached."
-      until [ "$(${describeVolume(
-        "Volumes[0].Attachments[0].State"
-      )})" = attached ]; do
-        sleep 5
-        >&2 printf .
-      done
+      if [[ ${deviceIsEmpty()} ]]; then
+       >&2 echo "Formatting new EBS device at ${devicePath}..."
+       mkfs -t "${fsFormat}" "${devicePath}"
+      fi
       
-      >&2 echo ".. Done"
-    fi
-    
-    if [[ ${deviceIsEmpty()} ]]; then
-     >&2 echo "Formatting new EBS device at ${devicePath}..."
-     mkfs -t "${fsFormat}" "${devicePath}"
-    fi
-    
-    mkdir -p "${mountPoint}"
-    chattr +i "${mountPoint}"
-    if ! grep -q "${fstab}" "/etc/fstab" ; then
-     echo "${fstab}" >> /etc/fstab
-     mount -a
-    fi
-  `).trimStart();
+      mkdir -p "${mountPoint}"
+      chattr +i "${mountPoint}"
+      if ! grep -q "${fstab}" "/etc/fstab" ; then
+       echo "${fstab}" >> /etc/fstab
+       mount -a
+      fi
+  `).trim() + "/n"
+  );
 }
