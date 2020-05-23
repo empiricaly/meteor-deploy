@@ -45,7 +45,7 @@ const defaultStack: StackConfig<typeof defaultStackType> = {
   },
 };
 
-export default async function (program: Command) {
+export default async function configure(program: Command) {
   program.description("Creates a deployment stack configuration");
 
   const getCommonOptions = commonOptions(

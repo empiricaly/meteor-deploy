@@ -1,6 +1,9 @@
 import { Command } from "commander";
 import init from "./init";
 import stack from "./stack";
+import install from "./install";
+import { pulumiExecutable } from "/src/installers/pulumi";
+import { getInstallDir } from "/src/installers";
 
 export interface CommandInterface {
   (program: Command): void | Promise<void>;
@@ -19,8 +22,15 @@ export async function addSubcommands(
 }
 
 export default async function (program: Command): Promise<void> {
+  const pulumi = pulumiExecutable(getInstallDir());
+
+  if (pulumi) {
+    program.command("pulumi", "Run pulumi", { executableFile: pulumi });
+  }
+
   await addSubcommands(program, {
     init,
     stack,
+    install,
   });
 }
