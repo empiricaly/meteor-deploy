@@ -1,5 +1,6 @@
 import { Input } from "@pulumi/pulumi";
 import * as awsEcsEc2 from "./aws-ecs-ec2";
+import * as defaultStack from "./default";
 import { CloudName } from "/src/clouds";
 import { Data } from "/src/utils/schema";
 
@@ -35,10 +36,15 @@ export const stacks: {
     awsEcsEc2.ConfigSchema,
     awsEcsEc2.Config
   >;
+  default: StackRegistryEntry<defaultStack.ConfigSchema, defaultStack.Config>;
 } = {
   [awsEcsEc2.stackType]: {
     ...awsEcsEc2,
     description: "Deploy on AWS ECS using EC2 instances",
+  },
+  default: {
+    ...defaultStack,
+    description: "Default stack-configuration managed by meteor-deploy",
   },
 };
 

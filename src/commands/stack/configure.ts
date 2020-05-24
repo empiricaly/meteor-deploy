@@ -6,11 +6,9 @@ import {
 import { Command } from "commander";
 import { commonOptions } from "/src/commands/common-options";
 import { stacks, GetConfig as GetStackConfig, STACK_TYPE } from "/src/stacks";
-import { stackType as defaultStackType } from "/src/stacks/aws-ecs-ec2";
 import { clouds, GetConfig as GetCloudConfig } from "/src/clouds";
 import { PulumiStackConfigurator } from "/src/initializers";
 import { pulumiRequireStack } from "/src/pulumi";
-import { getDefaultRegion } from "/src/clouds/aws";
 
 type GetCloudConfigForStackType<T extends STACK_TYPE> = GetCloudConfig<
   typeof clouds[typeof stacks[T]["cloud"]]
@@ -24,26 +22,6 @@ type StackConfig<T extends STACK_TYPE> = {
   stackType: T;
   stackConfig: GetStackConfigForStackType<T>;
   cloudConfig: GetCloudConfigForStackType<T>;
-};
-
-const defaultStack: StackConfig<typeof defaultStackType> = {
-  stackType: defaultStackType,
-  stackConfig: {
-    instanceType: "t2.micro",
-    app: {
-      memory: 368,
-    },
-    database: {
-      memory: 368,
-      mongoTag: "latest",
-      storageType: "ebs",
-    },
-    // XXX currently auto-tags do not work yet.
-    disableProjectTags: true,
-  },
-  cloudConfig: {
-    region: getDefaultRegion(),
-  },
 };
 
 export default async function configure(program: Command) {
@@ -85,18 +63,13 @@ export default async function configure(program: Command) {
     };
   }
 
-  program
-    .command("default")
-    .description(
-      `Configure default stack type "${defaultStack.stackType}" with default options`
-    )
-    .action(programAction(defaultStack.stackType, () => defaultStack));
-
   Object.entries(stacks).forEach(
     ([stackType, { getConfigSchema, description, cloud }]) => {
       const stackSchema = getConfigSchema();
       const cloudSchema = clouds[cloud].getConfigSchema();
-      const subProgram = program.command(stackType) as Command;
+      const subProgram = program.command(stackType, {
+        isDefault: stackType === "default",
+      }) as Command;
 
       if (description) {
         subProgram.description(description);
