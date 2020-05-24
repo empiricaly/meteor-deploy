@@ -10,6 +10,7 @@ import { stackType as defaultStackType } from "/src/stacks/aws-ecs-ec2";
 import { clouds, GetConfig as GetCloudConfig } from "/src/clouds";
 import { PulumiStackConfigurator } from "/src/initializers";
 import { pulumiRequireStack } from "/src/pulumi";
+import { getDefaultRegion } from "/src/clouds/aws";
 
 type GetCloudConfigForStackType<T extends STACK_TYPE> = GetCloudConfig<
   typeof clouds[typeof stacks[T]["cloud"]]
@@ -41,7 +42,7 @@ const defaultStack: StackConfig<typeof defaultStackType> = {
     disableProjectTags: true,
   },
   cloudConfig: {
-    region: "us-east-1",
+    region: getDefaultRegion(),
   },
 };
 
