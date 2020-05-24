@@ -1,4 +1,4 @@
-import pulumi from "./pulumi";
+import * as pulumi from "./pulumi";
 import { getPackageInfo } from "/src/utils";
 import path from "path";
 import { existsSync, mkdirSync } from "fs";
