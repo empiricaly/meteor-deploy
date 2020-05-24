@@ -61,15 +61,7 @@ ENV PATH        $NVM_DIR/v$NODE_VERSION/bin:$PATH
 
 RUN . $NVM_DIR/nvm.sh && nvm --version
 
-FROM meteor-nvm as meteor-nvm-pulumi
-RUN curl -fsSL https://get.pulumi.com | bash
-
-ENV PULUMI_PATH $HOME/.pulumi/bin
-ENV PATH        $PATH:$PULUMI_PATH
-
-RUN pulumi version
-
-FROM meteor-nvm-pulumi as local-meteor-deploy
+FROM meteor-nvm as local-meteor-deploy
 
 ARG USERNAME
 ARG GROUPNAME
@@ -111,6 +103,7 @@ ARG PULUMI_PROJECT_NAME
 
 RUN . "$NVM_DIR/nvm.sh"; \
     set -e; \
+    npx meteor-deploy install pulumi; \
     npx meteor-deploy init $PULUMI_PROJECT_NAME; \
     npm install
 
@@ -127,4 +120,4 @@ COPY container-helpers/entrypoint.sh .
 USER root
 ENV ENTRYUSER $USERNAME
 ENTRYPOINT [ "./entrypoint.sh" ]
-CMD "pulumi up"
+CMD "npx meteor-deploy pulumi up"

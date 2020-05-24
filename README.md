@@ -52,7 +52,7 @@ meteor npm install --save-dev @empirica/meteor-deploy -y
 Now enable your meteor projects for deployments using `@empirica/meteor-deploy`:
 
 ```bash
-npx meteor-deploy init --description "This is meteor deployment project"
+npx meteor-deploy init
 ```
 
 This will install some configuration files to allow you to push infrastructure through pulumi. 
@@ -64,12 +64,6 @@ meteor npm install
 ```
 
 ### Configure a deployment stack
-
-With the newly created deployment, select a new pulumi deployment stack:
-
-```bash
-npx meteor-deploy pulumi stack select -c dev
-```
 
 Apply default configuration to the stack:
 
