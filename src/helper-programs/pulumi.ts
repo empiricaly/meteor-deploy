@@ -3,19 +3,20 @@ import path from "path";
 import { ROOT } from "/root";
 import { execFileSync } from "child_process";
 import { existsSync } from "fs";
+import { dependencies } from "/package-lock.json";
 
-export function installDirectory(parent: string): string {
+export function installDirectoryWithinHelperDirectory(parent: string): string {
   // As hardcoded in scripts/get_pulumi.sh
-  return path.join(parent, ".pulumi");
+  return path.join(parent, "pulumi");
 }
 
-export function pulumiExecutable(installDir: string): string | null {
+export function executableFile(installDir: string): string | null {
   const pulumi = path.join(installDir, "bin", "pulumi");
   return existsSync(pulumi) ? pulumi : null;
 }
 
-export function installedPulumiVersion(dir: string): string | null {
-  const pulumi = pulumiExecutable(installDirectory(dir));
+export function getInstalledVersion(installDir: string): string | null {
+  const pulumi = executableFile(installDir);
   return (
     pulumi &&
     execFileSync(pulumi, ["version"], { encoding: "utf-8" })
@@ -24,11 +25,18 @@ export function installedPulumiVersion(dir: string): string | null {
   );
 }
 
-export default function installPulumi(
+export function getDefaultVersion(): string {
+  return dependencies["@pulumi/pulumi"].version;
+}
+
+export const encoding = "utf-8";
+
+export function install(
   directory: string,
-  version = "latest"
+  version = getDefaultVersion()
 ): void {
-  if (installedPulumiVersion(directory) !== version) {
+  const installDir = installDirectoryWithinHelperDirectory(directory);
+  if (getInstalledVersion(installDir) !== version) {
     execFileSync(
       path.join(ROOT, "scripts", "get_pulumi.sh"),
       ["--version", version],

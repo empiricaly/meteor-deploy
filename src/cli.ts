@@ -8,7 +8,7 @@ interface InitArgs {
   devMode: boolean;
 }
 
-function createProgram(
+async function createProgram(
   {
     name,
     version,
@@ -19,7 +19,7 @@ function createProgram(
     description?: string;
   },
   commandInterface: CommandInterface = commands
-): typeof program {
+): Promise<typeof program> {
   const program = new Command(name);
 
   program.storeOptionsAsProperties(false).passCommandToAction(false);
@@ -32,21 +32,14 @@ function createProgram(
     program.description(description);
   }
 
-  // program.option(
-  //   "-v, --verbose",
-  //   "increase verbosity",
-  //   (dummyValue, previous) => previous + 1,
-  //   0
-  // );
-
-  commandInterface(program as Command);
+  await commandInterface(program as Command);
 
   return program;
 }
 
 if (process.argv) {
   createProgram(getPackageInfo())
-    .parseAsync(process.argv)
+    .then((program) => program.parseAsync(process.argv))
     .catch((error) => {
       console.error(
         `Failed with an unhandled exception: ${error.stack || error}`
