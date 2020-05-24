@@ -1,6 +1,11 @@
+import { InstanceTypes } from "@pulumi/aws/ec2/instanceType";
 import { ec2, Tags } from "@pulumi/aws";
 import { JsonableObj, schema } from "/src/utils";
 import { StorageType, DatabaseVolumeName } from "./storage";
+
+const instanceTypes: Set<ec2.InstanceType> = new Set(
+  Object.entries(InstanceTypes).map(([, instanceType]) => instanceType)
+);
 
 export type Config = {
   instanceType: ec2.InstanceType;
@@ -46,6 +51,7 @@ export function getConfigSchema(): ConfigSchema {
 
     instanceType: schema.StringField.required<ec2.InstanceType>()
       .commandOption("--instanceType <type>")
+      .allowed(...instanceTypes)
       .describe(
         "The type of EC2 instances to use. Select one from: https://aws.amazon.com/ec2/instance-types/"
       ),
