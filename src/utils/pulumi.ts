@@ -1,7 +1,3 @@
-import * as path from "path";
-import { readConfig } from "./config-files";
-import { execSync, ExecSyncOptions } from "child_process";
-
 export type PulumiProjectConfigFileObject = {
   name: string;
   runtime:
@@ -36,17 +32,6 @@ export type PulumiProjectConfigFileObject = {
   };
 };
 
-export function getPulumiProjectConfig(dir = process.cwd()) {
-  return readConfig<PulumiProjectConfigFileObject>(
-    path.join(dir, `Pulumi.yaml`)
-  );
-}
-
-export function getPulumiDeploymentDirectory(dir = process.cwd()): string {
-  const { main = dir } = getPulumiProjectConfig(dir);
-  return main;
-}
-
 export function pulumiStackConfig(stack: string, config: object): object {
   return Object.assign(
     {},
@@ -54,48 +39,4 @@ export function pulumiStackConfig(stack: string, config: object): object {
       [`${stack}:${key}`]: value,
     }))
   );
-}
-
-type PulumiStack = {
-  name: string;
-  current: boolean;
-  updateInProgress: boolean;
-  url?: string;
-};
-export function pulumiRun(
-  args: string,
-  options?: Omit<ExecSyncOptions, "encoding" | "env">
-): string {
-  return execSync(`pulumi ${args}`, {
-    ...options,
-    encoding: "utf-8",
-    env: {
-      ...process.env,
-      PATH: `${process.env.PATH}:${process.env.HOME}/.pulumi/bin`,
-    },
-  });
-}
-
-export function pulumiListStacks(dir: string): PulumiStack[] {
-  return JSON.parse(
-    pulumiRun("stack ls -j", {
-      cwd: dir,
-    })
-  );
-}
-
-export function pulumiCurrentStack(dir: string): PulumiStack | undefined {
-  return pulumiListStacks(dir).find(({ current }) => current);
-}
-
-export function pulumiRequireStack(dir: string): PulumiStack {
-  const stack = pulumiCurrentStack(dir);
-
-  if (!stack) {
-    throw new Error(
-      `No pulumi stack has been selected. Please select one with 'pulumi stack select'`
-    );
-  }
-
-  return stack;
 }

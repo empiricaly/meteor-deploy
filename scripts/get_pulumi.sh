@@ -84,10 +84,10 @@ fi
 
 TARBALL_URL="https://get.pulumi.com/releases/sdk/pulumi-v${VERSION}-${OS}-x64.tar.gz"
 
-if ! command -v pulumi >/dev/null; then
+if ! command -v $HOME/pulumi/bin/pulumi >/dev/null; then
     say_blue "=== Installing Pulumi v${VERSION} ==="
 else
-    say_blue "=== Upgrading Pulumi $(pulumi version) to v${VERSION} ==="
+    say_blue "=== Upgrading Pulumi $($HOME/pulumi/bin/pulumi version) to v${VERSION} ==="
 fi
 
 say_white "+ Downloading ${TARBALL_URL}..."
@@ -95,14 +95,14 @@ say_white "+ Downloading ${TARBALL_URL}..."
 TARBALL_DEST=$(mktemp -t pulumi.tar.gz.XXXXXXXXXX)
 
 if curl --fail -L -o "${TARBALL_DEST}" "${TARBALL_URL}"; then
-    say_white "+ Extracting to $HOME/.pulumi/bin"
+    say_white "+ Extracting to $HOME/pulumi/bin"
 
-    # If `~/.pulumi/bin exists, clear it out
-    if [ -e "${HOME}/.pulumi/bin" ]; then
-        rm -rf "${HOME}/.pulumi/bin"
+    # If `~/pulumi/bin exists, clear it out
+    if [ -e "${HOME}/pulumi/bin" ]; then
+        rm -rf "${HOME}/pulumi/bin"
     fi
 
-    mkdir -p "${HOME}/.pulumi"
+    mkdir -p "${HOME}/pulumi"
 
     # Yarn's shell installer does a similar dance of extracting to a temp
     # folder and copying to not depend on additional tar flags
@@ -113,9 +113,9 @@ if curl --fail -L -o "${TARBALL_DEST}" "${TARBALL_URL}"; then
     # format if we detect it. Newer tarballs just have all the binaries in
     # the top level Pulumi folder.
     if [ -d "${EXTRACT_DIR}/pulumi/bin" ]; then
-        mv "${EXTRACT_DIR}/pulumi/bin" "${HOME}/.pulumi/"
+        mv "${EXTRACT_DIR}/pulumi/bin" "${HOME}/pulumi/"
     else
-        cp -r "${EXTRACT_DIR}/pulumi/." "${HOME}/.pulumi/bin/"
+        cp -r "${EXTRACT_DIR}/pulumi/." "${HOME}/pulumi/bin/"
     fi
 
     rm -f "${TARBALL_DEST}"

@@ -1,7 +1,6 @@
 import {
   CommanderField,
   PulumiProjectConfigFileObject,
-  pulumiRequireStack,
   readConfig,
 } from "/src/utils";
 import { Command } from "commander";
@@ -10,6 +9,7 @@ import { stacks, GetConfig as GetStackConfig, STACK_TYPE } from "/src/stacks";
 import { stackType as defaultStackType } from "/src/stacks/aws-ecs-ec2";
 import { clouds, GetConfig as GetCloudConfig } from "/src/clouds";
 import { PulumiStackConfigurator } from "/src/initializers";
+import { pulumiRequireStack } from "/src/pulumi";
 
 type GetCloudConfigForStackType<T extends STACK_TYPE> = GetCloudConfig<
   typeof clouds[typeof stacks[T]["cloud"]]
