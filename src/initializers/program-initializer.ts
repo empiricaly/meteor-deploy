@@ -51,13 +51,15 @@ export class ProgramInitializer extends Wrapper<CoreInitializer> {
     });
   }
 
-  addNpmPackageInstall(dir: string): this {
+  addNpmPackageInstall(dir: string, npmPackage = ""): this {
     const npm = requireNpmExecutable();
 
     return this.addExec({
-      command: `${npm} install`,
+      command: npmPackage
+        ? `${npm} install ${npmPackage} -y`
+        : `${npm} install`,
       cwd: dir,
-      description: "Install npm modules",
+      description: npmPackage ? `Install ${npmPackage}` : "Install npm modules",
     });
   }
 

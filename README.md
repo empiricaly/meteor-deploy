@@ -39,7 +39,7 @@ Before we begin you need to do the following:
 
 You will also need an up-to-date version of meteor installed.
 
-### Install
+### Deploy your project
 
 Install `@empirica/meteor-deploy` through npm, by running the following command in your meteor projects' directory.
 
@@ -47,31 +47,19 @@ Install `@empirica/meteor-deploy` through npm, by running the following command 
 meteor npm install --save-dev @empirica/meteor-deploy -y
 ```
 
-### Create a deployment project
-
-Now enable your meteor projects for deployments using `@empirica/meteor-deploy`:
+Enable your project for deployments with default configuration:
 
 ```bash
-npx meteor-deploy init
+npx meteor-deploy init my-deployment-project
 ```
 
-This will install some configuration files to allow you to push infrastructure through pulumi. 
-
-Make sure to install newly required NPM packages.
-
-```bash 
-meteor npm install
-```
-
-### Deploy 
-
-We are now ready deploy your project to the cloud
+Execute the deployment to your cloud:
 
 ```bash
 npx meteor-deploy pulumi up
 ```
 
-#### Update deployment with new versions of your meteor project
+### Update deployment with new versions of your meteor project
 
 After making changes to your meteor project, you can update your deployment simply through pulumi:
 
@@ -79,7 +67,7 @@ After making changes to your meteor project, you can update your deployment simp
 npx meteor-deploy pulumi up
 ```
 
-#### Update with new versions of `@empirica/meteor-deploy`
+### Update with new versions of `@empirica/meteor-deploy`
 
 Occasionally `@empirica/meteor-deploy` will issue new releases of the tool that might improve upon your infrastructure.
 

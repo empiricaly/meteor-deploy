@@ -113,23 +113,28 @@ export class PulumiProjectInitializer extends Wrapper<CoreInitializer> {
     return this;
   }
 
-  initPackageJson(
+  installPulumiPackage(
     dir: string,
-    pulumiProgram: string,
     pulumiSdk = "@pulumi/pulumi",
     pulumiVersion: string = (getPackageInfo().dependencies || {})[pulumiSdk]
   ): this {
+    this.programInitializer.addNpmPackageInstall(
+      dir,
+      `${pulumiSdk}@${pulumiVersion}`
+    );
+    return this;
+  }
+
+  initPackageJson(dir: string, pulumiProgram: string): this {
     const editor = this.fileInitializer.editJsonFile({
       targetPath: path.join(dir, "package.json"),
-      description:
-        "Add additional npm dependencies and declare the pulumi program runtime",
+      description: "Declare the pulumi program runtime",
     });
 
     const main = editor.get("main");
     const conflictingMain = main && main !== pulumiProgram;
 
     editor.set("main", pulumiProgram);
-    editor.set(`devDependencies.${pulumiSdk}`, pulumiVersion);
     editor.save({
       canSkip: true,
       challenge: conflictingMain,
@@ -138,10 +143,6 @@ export class PulumiProjectInitializer extends Wrapper<CoreInitializer> {
         : undefined,
     }); //Adds a step to the initializer if the above modifications contribute to a file change.
     return this;
-  }
-
-  createConfiguration(meteorDirectory: string) {
-
   }
 
   addProject({
@@ -170,6 +171,7 @@ export class PulumiProjectInitializer extends Wrapper<CoreInitializer> {
         developmentMode
       )
       .addPulumiYaml(meteorDirectory, { name: projectName, description })
+      .installPulumiPackage(meteorDirectory)
       .initPackageJson(meteorDirectory, pulumiProgram);
   }
 }
