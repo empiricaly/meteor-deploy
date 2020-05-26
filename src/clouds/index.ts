@@ -3,6 +3,7 @@ import { Schema } from "/src/utils/schema";
 
 export interface CloudRegistryEntry<Config extends object> {
   getConfigSchema(): Schema<Config>;
+  getDefaultConfig(): Config;
 }
 
 export type GetConfig<

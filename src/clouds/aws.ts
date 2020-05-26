@@ -47,7 +47,6 @@ export function getDefaultRegion(): Region {
     // If aws-cli is not installed or it is not outputting what we would expect it to output it means that our best
     // guess for suitable region will not be as good as it could have been. So we fallback to the most popular region...
     // TODO log error in debug mode.
-    console.error(error);
     return "us-east-1";
   }
 }
@@ -62,5 +61,11 @@ export function getConfigSchema(): ConfigSchema {
       .describe(
         "AWS Region to deploy to. See https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Concepts.RegionsAndAvailabilityZones.html"
       ),
+  };
+}
+
+export function getDefaultConfig(): Config {
+  return {
+    region: getDefaultRegion(),
   };
 }
