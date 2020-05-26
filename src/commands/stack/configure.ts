@@ -1,14 +1,10 @@
-import {
-  CommanderField,
-  PulumiProjectConfigFileObject,
-  readConfig,
-} from "/src/utils";
+import { createConfigRetriever } from "/src/utils";
 import { Command } from "commander";
 import { commonOptions } from "/src/commands/common-options";
 import { stacks, GetConfig as GetStackConfig, STACK_TYPE } from "/src/stacks";
 import { clouds, GetConfig as GetCloudConfig } from "/src/clouds";
-import { PulumiStackConfigurator } from "/src/initializers";
-import { pulumiRequireStack } from "/src/pulumi";
+import { PulumiStackConfigurator, runSequence } from "/src/initializers";
+import { pulumiRequireStack, requirePulumiProjectName } from "/src/pulumi";
 
 type GetCloudConfigForStackType<T extends STACK_TYPE> = GetCloudConfig<
   typeof clouds[typeof stacks[T]["cloud"]]
@@ -41,11 +37,8 @@ export default async function configure(program: Command) {
     }
   ) {
     return async () => {
-      const { name: projectName } = readConfig<PulumiProjectConfigFileObject>(
-        "Pulumi.yaml"
-      );
-
       const { simulation, meteorDirectory } = getCommonOptions();
+      const projectName = requirePulumiProjectName(meteorDirectory);
       const { name: stackName } = pulumiRequireStack(meteorDirectory);
 
       const { stackConfig, cloudConfig } = getConfig();
@@ -59,14 +52,12 @@ export default async function configure(program: Command) {
         meteorDirectory,
       });
 
-      await initializer.execute();
+      await runSequence(initializer);
     };
   }
 
   Object.entries(stacks).forEach(
     ([stackType, { getConfigSchema, description, cloud }]) => {
-      const stackSchema = getConfigSchema();
-      const cloudSchema = clouds[cloud].getConfigSchema();
       const subProgram = program.command(stackType, {
         isDefault: stackType === "default",
       }) as Command;
@@ -75,17 +66,14 @@ export default async function configure(program: Command) {
         subProgram.description(description);
       }
 
-      const stackOptions = CommanderField.wrapSchema(stackSchema);
-      const cloudOptions = CommanderField.wrapSchema(cloudSchema);
-
-      CommanderField.configure(stackOptions, subProgram);
-      CommanderField.configure(cloudOptions, subProgram);
-
       subProgram.action(
-        programAction(stackType as STACK_TYPE, () => ({
-          cloudConfig: CommanderField.retrieve(cloudOptions, subProgram),
-          stackConfig: CommanderField.retrieve(stackOptions, subProgram),
-        }))
+        programAction(
+          stackType as STACK_TYPE,
+          createConfigRetriever(subProgram, {
+            stackConfig: getConfigSchema(),
+            cloudConfig: clouds[cloud].getConfigSchema(),
+          })
+        )
       );
     }
   );

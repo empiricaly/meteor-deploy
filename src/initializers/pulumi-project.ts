@@ -140,6 +140,10 @@ export class PulumiProjectInitializer extends Wrapper<CoreInitializer> {
     return this;
   }
 
+  createConfiguration(meteorDirectory: string) {
+
+  }
+
   addProject({
     meteorDirectory = process.cwd(),
     projectName = getDefaultProjectName(meteorDirectory),
@@ -152,6 +156,7 @@ export class PulumiProjectInitializer extends Wrapper<CoreInitializer> {
     meteorDirectory?: string;
     developmentMode?: boolean;
     pulumiProgram?: string;
+    skipConfiguration?: boolean;
   } = {}): this {
     if (!fileProber.exists(path.join(meteorDirectory, ".meteor"))) {
       throw new Error(`'${meteorDirectory}' is not a valid meteor project`);

@@ -174,3 +174,28 @@ export class CommanderField<T, SchemaField extends schema.Field<T>> {
       : `${flag} <value>`;
   }
 }
+
+export type ConfigRetriever<T extends Record<string, object>> = () => {
+  [K in keyof T]: schema.Data<T[K]>;
+};
+
+export function createConfigRetriever<Map extends Record<string, object>>(
+  program: Command,
+  schemaMap: Map
+): ConfigRetriever<typeof schemaMap> {
+  const options = Object.entries(schemaMap).map(([key, schema]) => ({
+    [key]: CommanderField.wrapSchema(schema),
+  }));
+
+  Object.values(options).forEach((options) =>
+    CommanderField.configure(options, program)
+  );
+
+  return () =>
+    Object.assign(
+      {},
+      ...Object.entries(options).map(([key, options]) => ({
+        [key]: CommanderField.retrieve(options, program),
+      }))
+    );
+}

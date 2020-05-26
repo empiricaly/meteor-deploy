@@ -7,6 +7,8 @@ import { StackOutput } from "/src/stacks/index";
 // then these users will automatically inherit that new default configuration, instead of keeping their old configuration
 // in place.
 
+export const stackType = "default";
+
 export const cloud = stack.cloud;
 
 // These properties are useful, but meteor-deploy will never be able to define them as a default. So we can still expose

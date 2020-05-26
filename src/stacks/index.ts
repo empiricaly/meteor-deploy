@@ -42,7 +42,7 @@ export const stacks: {
     ...awsEcsEc2,
     description: "Deploy on AWS ECS using EC2 instances",
   },
-  default: {
+  [defaultStack.stackType]: {
     ...defaultStack,
     description: "Default stack-configuration managed by meteor-deploy",
   },

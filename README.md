@@ -41,7 +41,7 @@ You will also need an up-to-date version of meteor installed.
 
 ### Install
 
-Finally, install `@empirica/meteor-deploy` through npm, by running the following command in your meteor projects' directory.
+Install `@empirica/meteor-deploy` through npm, by running the following command in your meteor projects' directory.
 
 ```bash
 meteor npm install --save-dev @empirica/meteor-deploy -y
@@ -57,18 +57,10 @@ npx meteor-deploy init
 
 This will install some configuration files to allow you to push infrastructure through pulumi. 
 
-Make sure to install newly require NPM packages.
+Make sure to install newly required NPM packages.
 
 ```bash 
 meteor npm install
-```
-
-### Configure a deployment stack
-
-Apply default configuration to the stack:
-
-```bash 
-npx meteor-deploy stack configure default
 ```
 
 ### Deploy 
