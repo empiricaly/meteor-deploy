@@ -39,3 +39,19 @@ export function getPackageInfo(packagePath?: string): PackageInfo {
       .map(([key, value]) => ({ [key]: value }))
   );
 }
+
+export function npmPackageIsInstalled(
+  packagePath: string,
+  packageName: string,
+  packageVersion?: string,
+  onlyProduction = false
+): boolean {
+  const { dependencies, devDependencies } = getPackageInfo(packagePath);
+  const packages = onlyProduction
+    ? dependencies || {}
+    : { ...dependencies, ...devDependencies };
+
+  return packageVersion
+    ? packages[packageName] === packageVersion
+    : packages[packageName] !== undefined;
+}

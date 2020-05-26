@@ -2,6 +2,7 @@ import {
   fileProber,
   getPackageInfo,
   Indent,
+  npmPackageIsInstalled,
   PulumiProjectConfigFileObject,
 } from "/src/utils";
 import path from "path";
@@ -118,10 +119,12 @@ export class PulumiProjectInitializer extends Wrapper<CoreInitializer> {
     pulumiSdk = "@pulumi/pulumi",
     pulumiVersion: string = (getPackageInfo().dependencies || {})[pulumiSdk]
   ): this {
-    this.programInitializer.addNpmPackageInstall(
-      dir,
-      `${pulumiSdk}@${pulumiVersion}`
-    );
+    if (!npmPackageIsInstalled(dir, pulumiSdk, pulumiVersion)) {
+      this.programInitializer.addNpmPackageInstall(
+        dir,
+        `${pulumiSdk}@${pulumiVersion}`
+      );
+    }
     return this;
   }
 
