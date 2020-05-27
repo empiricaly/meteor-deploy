@@ -27,13 +27,16 @@ export type Config = {
       value: string;
     }[];
   };
+
   database: {
     mongoTag: string;
     memory: number;
-    storageType: StorageType;
-    ebsRexrayVolumeSizes?: Record<DatabaseVolumeName, number | undefined>;
-    ebsVolumeSize?: number;
-    ebsSnapshotId?: string;
+    storage: {
+      type: StorageType;
+      volumeSize?: number;
+      snapshotId?: string;
+      rexrayVolumeSizes?: Record<DatabaseVolumeName, number | undefined>;
+    };
   };
   tags?: Tags;
   disableProjectTags?: boolean;
@@ -127,27 +130,29 @@ export function getConfigSchema(): ConfigSchema {
         .describe(
           "Specify the MongoDB version to use. Available options: https://hub.docker.com/_/mongo?tab=tags"
         ),
-      storageType: schema.StringField.required<StorageType>()
-        .commandOption("--db:storage-type <string>")
-        .allowed("efs", "ebs", "ebs-rexray")
-        .default("ebs")
-        .describe("The type of persistent storage to use for the database"),
-      ebsRexrayVolumeSizes: schema.ObjectField.optional<
-        Record<DatabaseVolumeName, number | undefined>
-      >({
-        db: schema.NumberField.optional().range({ min: 0 }).default(30),
-        configdb: schema.NumberField.optional().range({ min: 0 }).default(1),
-      }),
-      ebsVolumeSize: schema.NumberField.optional()
-        .range({ min: 0 })
-        .default(10)
-        .commandOption("--db:ebs-volume-size <Gigabytes>")
-        .describe(
-          "Size in Gigabytes for persistent storage (applicable for storageType=ebs)"
-        ),
-      ebsSnapshotId: schema.StringField.optional()
-        .describe("Restores database from the given EBS-snapshot")
-        .commandOption("--db:ebs-snapshot <snapshotId>"),
+      storage: {
+        type: schema.StringField.required<StorageType>()
+          .commandOption("--storage:type <string>")
+          .allowed("efs", "ebs", "ebs-rexray")
+          .default("ebs")
+          .describe("The type of persistent storage to use for the database"),
+        rexrayVolumeSizes: schema.ObjectField.optional<
+          Record<DatabaseVolumeName, number | undefined>
+        >({
+          db: schema.NumberField.optional().range({ min: 0 }).default(30),
+          configdb: schema.NumberField.optional().range({ min: 0 }).default(1),
+        }),
+        volumeSize: schema.NumberField.optional()
+          .range({ min: 0 })
+          .default(10)
+          .commandOption("--storage:volume-size <Gigabytes>")
+          .describe(
+            "Size in Gigabytes for persistent storage (applicable for storageType=ebs)"
+          ),
+        snapshotId: schema.StringField.optional()
+          .describe("Restores database from the given EBS-snapshot")
+          .commandOption("--storage:snapshot <snapshotId>"),
+      },
     },
 
     tags: schema.ObjectField.optional<Tags>().describe(

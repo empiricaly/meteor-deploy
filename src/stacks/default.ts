@@ -33,7 +33,9 @@ export const config: stack.Config = {
   database: {
     memory: 368,
     mongoTag: "latest",
-    storageType: "ebs",
+    storage: {
+      type: "ebs",
+    },
   },
   // XXX currently auto-tags do not work yet.
   disableProjectTags: true,

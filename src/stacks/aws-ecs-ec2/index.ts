@@ -74,11 +74,11 @@ export async function createStack(
   // https://github.com/pulumi/pulumi-awsx/issues/536
   const [ebsSubnet] = subnets;
   const autoscalerSubnets =
-    database.storageType === "ebs" ? [ebsSubnet] : subnets;
+    database.storage.type === "ebs" ? [ebsSubnet] : subnets;
 
   let databaseVolumes: VolumeDefinition<"database">[] = [];
 
-  if (database.storageType === "efs") {
+  if (database.storage.type === "efs") {
     const sg = createSecurityGroup(resourcePrefix, { vpc });
 
     databaseVolumes = createDatabaseEfsVolumes(resourcePrefix, {
@@ -95,10 +95,10 @@ export async function createStack(
 
   let userData: Input<string> | undefined;
 
-  if (database.storageType === "ebs-rexray") {
+  if (database.storage.type === "ebs-rexray") {
     databaseVolumes = createDatabaseRexrayStorageVolumes(
       `${resourcePrefix}-ebs-rexray`,
-      database.ebsRexrayVolumeSizes
+      database.storage.rexrayVolumeSizes
     );
 
     userData = output({
@@ -109,12 +109,13 @@ export async function createStack(
 
   const autoscalerDependencies = [];
 
-  if (database.storageType === "ebs") {
+  if (database.storage.type === "ebs") {
     const persistentStoragePath = "/volumes/ebs";
 
     const ebsVolume = createEbsVolume(resourcePrefix, {
       size:
-        database.ebsVolumeSize || schema.database.ebsVolumeSize.defaultValue,
+        database.storage.volumeSize ||
+        schema.database.storage.volumeSize.defaultValue,
       availabilityZone: ebsSubnet.subnet.availabilityZone,
     });
 
@@ -176,7 +177,7 @@ export async function createStack(
 
   const instanceProfile = createAutoScalingInstanceProfile(
     `${resourcePrefix}-instance-profile`,
-    [database.storageType]
+    [database.storage.type]
   );
 
   createAutoScalingGroup(
