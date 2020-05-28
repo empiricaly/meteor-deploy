@@ -153,3 +153,48 @@ Click on the EC2 instance link in the table of running instances and look for it
 ```bash 
 ssh ec2-user@<ec2 instance>
 ```
+
+#### Destroying your deployment
+
+If you wish to tear down all resources that pulumi has created on your cloud account, you can run:
+
+```bash
+npx meteor-deploy pulumi destroy
+```
+
+If you are using persistent storage, pulumi will warn you that you may want to reconsider destroying that volume,
+because it will permanently destroy any non-backed up data that it contains.
+
+This will be displayed in a message like this:
+
+```
+Diagnostics:
+  aws:ebs:Volume (leaderboard-dev):
+    error: Preview failed: refusing to delete protected resource 'urn:pulumi:dev::leaderboard::aws:ebs/volume:Volume::leaderboard-dev'
+```
+
+[Create a snapshot](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-creating-snapshot.html) of that volume here to not lose its data. 
+
+Now go ahead un-protecting the volume and then destroying your deployment.
+
+**This will destroy the volume along with all the data stored on it**
+
+```bash
+npx meteor-deploy pulumi state unprotect <urn>
+npx meteor-deploy pulumi destroy
+```
+
+#### Restoring data from a snapshot
+
+If you have an EBS volume snapshot, and you want to restore its data to your deployment do:
+
+```bash 
+npx meteor-deploy pulumi config set --path database.storage.snapshotId <snapshot id>
+npx meteor-deploy pulumi up
+```
+
+When deployed remove the snapshot so that it does not overwrite any newer persisted data.
+
+```bash
+npx meteor-deploy pulumi config rm --path database.storage.snapshotId
+```
