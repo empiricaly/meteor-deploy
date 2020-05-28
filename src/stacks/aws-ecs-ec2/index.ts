@@ -117,6 +117,7 @@ export async function createStack(
         database.storage.volumeSize ||
         schema.database.storage.volumeSize.defaultValue,
       availabilityZone: ebsSubnet.subnet.availabilityZone,
+      snapshotId: database.storage.snapshotId,
     });
 
     autoscalerDependencies.push(ebsVolume);
