@@ -14,11 +14,11 @@ type WrappedField<T> = T extends schema.Field<infer U>
   ? CommanderField<U, T>
   : T;
 
-type Wrap<T extends object> = {
+type WrappedSchema<T extends object> = {
   [K in keyof T]: T[K] extends schema.Field<infer F>
     ? WrappedField<T[K]>
     : T[K] extends object
-    ? Wrap<T[K]>
+    ? WrappedSchema<T[K]>
     : T[K];
 };
 
@@ -39,7 +39,7 @@ export class CommanderField<T, SchemaField extends schema.Field<T>> {
     return field as WrappedField<typeof field>;
   }
 
-  static wrapSchema<T extends object>(schemaObj: T): Wrap<T> {
+  static wrapSchema<T extends object>(schemaObj: T): WrappedSchema<T> {
     return Object.assign(
       {},
       ...Object.entries(schemaObj).map(([key, value]) => ({
@@ -183,9 +183,14 @@ export function createConfigRetriever<Map extends Record<string, object>>(
   program: Command,
   schemaMap: Map
 ): ConfigRetriever<typeof schemaMap> {
-  const options = Object.entries(schemaMap).map(([key, schema]) => ({
-    [key]: CommanderField.wrapSchema(schema),
-  }));
+  const options: {
+    [S in keyof Map]: WrappedSchema<Map[S]>;
+  } = Object.assign(
+    {},
+    ...Object.entries(schemaMap).map(([key, schema]) => ({
+      [key]: CommanderField.wrapSchema(schema),
+    }))
+  );
 
   Object.values(options).forEach((options) =>
     CommanderField.configure(options, program)
