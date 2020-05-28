@@ -359,6 +359,6 @@ export function mountLocalFileSystemScript({
        echo "${fstab}" >> /etc/fstab
        mount -a
       fi
-  `).trim() + "/n"
+  `).trim() + "\n"
   );
 }
