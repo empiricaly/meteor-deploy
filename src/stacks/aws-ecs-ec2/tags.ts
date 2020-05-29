@@ -2,7 +2,7 @@ import { Input, output, Output } from "@pulumi/pulumi";
 import { Tags } from "@pulumi/aws";
 import { getPackageInfo } from "/src/utils";
 import { registerAutoTags } from "/src/clouds/aws";
-import { stackType } from "/src/stacks/aws-ecs-ec2/index";
+import { stackType } from "./index";
 
 type ProjectTagOptions = {
   projectName: string;
