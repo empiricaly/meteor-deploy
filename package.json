@@ -1,6 +1,6 @@
 {
     "name": "@empirica/meteor-deploy",
-    "version": "0.1.3",
+    "version": "0.2.0",
     "description": "A simple tool to facilitate deploying meteor projects to the cloud for production.",
     "main": "dist/index.js",
     "bin": {
