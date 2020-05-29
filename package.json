@@ -74,7 +74,6 @@
         "edit-json-file": "^1.4.0",
         "inquirer": "^7.1.0",
         "js-yaml": "^3.13.1",
-        "pulumi": "0.0.1",
         "regenerator-runtime": "^0.13.5",
         "semver": "^7.1.3"
     },
