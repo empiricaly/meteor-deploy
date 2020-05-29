@@ -3,7 +3,7 @@ import path from "path";
 import { ROOT } from "/root";
 import { execFileSync } from "child_process";
 import { existsSync } from "fs";
-import { dependencies } from "/package-lock.json";
+import { version as defaultPulumiVersion } from "@pulumi/pulumi/package.json";
 
 export function installDirectoryWithinHelperDirectory(parent: string): string {
   // As hardcoded in scripts/get_pulumi.sh
@@ -26,14 +26,14 @@ export function getInstalledVersion(installDir: string): string | null {
 }
 
 export function getDefaultVersion(): string {
-  return dependencies["@pulumi/pulumi"].version;
+  return defaultPulumiVersion;
 }
 
 export const encoding = "utf-8";
 
 export function install(
   directory: string,
-  version = getDefaultVersion()
+  version = defaultPulumiVersion
 ): void {
   const installDir = installDirectoryWithinHelperDirectory(directory);
   if (getInstalledVersion(installDir) !== version) {
