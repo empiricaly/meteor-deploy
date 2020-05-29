@@ -4,6 +4,7 @@ import { output, runtime, Input } from "@pulumi/pulumi";
 import { Tags } from "@pulumi/aws";
 import { Schema, StringField } from "/src/utils/schema";
 import { execSync } from "child_process";
+import { requireExperimentalModeForFeature } from "/src/utils";
 
 // XXX this will potentially break in a future update of pulumi, if they add an export to that regions.ts module that is
 // not a string representing a region. However TypeScript will detect such a change and warn about it at build time,
@@ -19,6 +20,7 @@ function isRegion(region: string): region is Region {
 }
 
 export function registerAutoTags(tags: Input<Tags>): void {
+  requireExperimentalModeForFeature("tags");
   runtime.registerStackTransformation(({ props, opts }) => {
     props["tags"] = output(tags).apply((tags) => ({
       ...tags,
