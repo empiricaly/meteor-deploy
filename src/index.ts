@@ -11,7 +11,7 @@ function helpFixingConfig<T>(configKey: string, allowedValues: T[]): string {
   )}"`;
 }
 
-export default async function (): Promise<StackOutput> {
+export default function (): StackOutput {
   const stackName = pulumi.getStack();
   const projectName = pulumi.getProject();
   if (!stackName) {

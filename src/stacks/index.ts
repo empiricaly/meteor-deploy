@@ -22,7 +22,7 @@ interface StackRegistryEntry<
     stackName: string,
     config: Config,
     options?: StackCreationOptions
-  ): StackOutput | Promise<StackOutput>;
+  ): StackOutput;
 }
 
 export type GetConfig<
