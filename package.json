@@ -61,9 +61,9 @@
         "typescript": "^3.8.3"
     },
     "dependencies": {
-        "@pulumi/aws": "^2.4.0",
+        "@pulumi/aws": "^2.6.1",
         "@pulumi/awsx": "^0.20.0",
-        "@pulumi/pulumi": "^2.2.1",
+        "@pulumi/pulumi": "^2.3.0",
         "@types/inquirer": "^6.5.0",
         "@types/js-yaml": "^3.12.3",
         "@types/node": "^13.9.8",
