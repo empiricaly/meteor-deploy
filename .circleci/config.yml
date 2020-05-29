@@ -87,13 +87,22 @@ workflows:
     version: 2
     main:
         jobs:
-            - install
+            - install:
+                filters:  # required since `deploy` has tag filters AND requires `build`
+                    tags:
+                        only: /v.*/
             - build:
                 requires:
                     - install
+                filters:  # required since `deploy` has tag filters AND requires `build`
+                    tags:
+                        only: /v.*/
             - test:
                 requires:
                     - install
+                filters:  # required since `deploy` has tag filters AND requires `build`
+                    tags:
+                        only: /v.*/
             - deploy:
                 requires:
                     - build
