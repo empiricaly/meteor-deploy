@@ -1,6 +1,6 @@
 import { ec2, ecs, autoscaling } from "@pulumi/awsx";
 import { Config } from "./config";
-import { ComponentResourceOptions, Input } from "@pulumi/pulumi";
+import { ComponentResourceOptions, Input, output } from "@pulumi/pulumi";
 import {
   createPolicyForStorageAccess,
   StorageType,
@@ -53,7 +53,7 @@ export function createAutoScalingGroup(
   }: {
     instanceType: Config["instanceType"];
     vpc: ec2.Vpc;
-    subnets: ec2.Subnet[];
+    subnets: Input<ec2.Subnet[]>;
     keyName?: Input<string>;
     userData?: Input<string>;
     instanceProfile?: iam.InstanceProfile;
@@ -64,7 +64,9 @@ export function createAutoScalingGroup(
     `${resourcePrefix}-asg`,
     {
       vpc,
-      subnetIds: subnets.map(({ subnet }) => subnet.id),
+      subnetIds: output(subnets).apply((subnets) =>
+        subnets.map(({ subnet }) => subnet.id)
+      ),
       templateParameters: {
         minSize: 0,
         maxSize: 2,

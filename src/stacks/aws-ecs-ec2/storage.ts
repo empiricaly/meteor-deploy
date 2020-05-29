@@ -2,7 +2,7 @@ import { ebs, efs, ecs, iam } from "@pulumi/aws";
 import { ec2 } from "@pulumi/awsx";
 import { ecs as ecsInput } from "@pulumi/aws/types/input";
 import { PolicyStatement } from "@pulumi/aws/iam";
-import { Input } from "@pulumi/pulumi";
+import { Input, output } from "@pulumi/pulumi";
 import {
   deviceName,
   removeIndent,
@@ -215,7 +215,7 @@ export function createDatabaseLocalStorageVolumes(
 
 export function createDatabaseEfsVolumes(
   resourcePrefix: string,
-  { subnets, sg }: { subnets: ec2.Subnet[]; sg: ec2.SecurityGroup }
+  { subnets, sg }: { subnets: Input<ec2.Subnet[]>; sg: ec2.SecurityGroup }
 ): EfsVolume<"database">[] {
   requireExperimentalModeForFeature("Storage type 'efs'");
   return databaseVolumes()
@@ -236,13 +236,15 @@ export function createDatabaseEfsVolumes(
       name,
       efsFileSystem,
       ...props,
-      mountTargets: subnets.map(
-        (subnet, index) =>
-          new efs.MountTarget(`${resourcePrefix}-${name}-${index}`, {
-            fileSystemId: efsFileSystem.id,
-            subnetId: subnet.id,
-            securityGroups: [sg.id],
-          })
+      mountTargets: output(subnets).apply((subnets) =>
+        subnets.map(
+          (subnet, index) =>
+            new efs.MountTarget(`${resourcePrefix}-${name}-${index}`, {
+              fileSystemId: efsFileSystem.id,
+              subnetId: subnet.id,
+              securityGroups: [sg.id],
+            })
+        )
       ),
     }));
 }

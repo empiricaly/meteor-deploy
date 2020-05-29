@@ -37,7 +37,7 @@ export * from "./config";
 
 export const stackType = "aws-ecs-ec2";
 
-export async function createStack(
+export function createStack(
   projectName: string,
   stackName: string,
   {
@@ -50,7 +50,7 @@ export async function createStack(
     ...config
   }: Config,
   { meteorDirectory = process.cwd() }: { meteorDirectory?: string } = {}
-): Promise<StackOutput> {
+): StackOutput {
   const schema = getConfigSchema();
 
   configureTags({
@@ -64,17 +64,17 @@ export async function createStack(
 
   const vpc = createVpc(resourcePrefix);
 
-  const [subnets, privateSubnets] = await Promise.all([
-    vpc.publicSubnets,
-    vpc.privateSubnets,
-  ]);
+  const subnets = output(vpc.publicSubnets),
+    privateSubnets = output(vpc.privateSubnets);
 
   // XXX Since pulumi-crosswalk does not support defining availability zones on autoscaling groups, we cheat it by
   // constraining the subnets instead. This is required, because EBS Volumes are not multi-az.
   // https://github.com/pulumi/pulumi-awsx/issues/536
-  const [ebsSubnet] = subnets;
+  const ebsSubnet = subnets.apply(([subnet]) => subnet);
   const autoscalerSubnets =
-    database.storage.type === "ebs" ? [ebsSubnet] : subnets;
+    database.storage.type === "ebs"
+      ? ebsSubnet.apply((subnet) => [subnet])
+      : subnets;
 
   let databaseVolumes: VolumeDefinition<"database">[] = [];
 

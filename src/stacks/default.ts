@@ -46,7 +46,7 @@ export function createStack(
   stackName: string,
   overrides: Config,
   options?: { meteorDirectory?: string }
-): Promise<StackOutput> {
+): StackOutput {
   return stack.createStack(
     projectName,
     stackName,

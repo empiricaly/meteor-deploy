@@ -1,5 +1,6 @@
 import { ec2 } from "@pulumi/awsx";
 import { SecurityGroupRuleLocation } from "@pulumi/awsx/ec2/securityGroupRule";
+import { Input, output } from "@pulumi/pulumi";
 
 const PORTS = {
   nfs: new ec2.TcpPorts(2049),
@@ -38,13 +39,15 @@ export function addIngressRule(
 
 export function allowEfsAccess(
   sg: ec2.SecurityGroup,
-  subnets: ec2.Subnet[]
+  subnets: Input<ec2.Subnet[]>
 ): ec2.SecurityGroupRule {
   return addIngressRule(
     sg,
     "efs-nfs",
     {
-      cidrBlocks: subnets.map(({ subnet }) => subnet.cidrBlock),
+      cidrBlocks: output(subnets).apply((subnets) =>
+        subnets.map(({ subnet }) => subnet.cidrBlock)
+      ),
     },
     "nfs",
     "Allow EFS connection"
