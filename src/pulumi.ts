@@ -35,7 +35,13 @@ export function pulumiRun(
   });
 }
 
+export function pulumiRequireLogin() {
+  // whoami will trigger a login, if not logged in already.
+  return pulumiRun(process.cwd(), "whoami", true);
+}
+
 export function pulumiListStacks(dir: string): PulumiStack[] {
+  pulumiRequireLogin();
   return JSON.parse(pulumiRun(dir, "stack ls -j"));
 }
 
