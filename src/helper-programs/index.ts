@@ -108,10 +108,7 @@ export function installHelperProgram(
     mkdirSync(dir, { recursive: true });
   }
 
-  helperProgram.install(
-    helperProgram.installDirectoryWithinHelperDirectory(dir),
-    version
-  );
+  helperProgram.install(dir, version);
 }
 
 export function getHelperProgramVersion(
